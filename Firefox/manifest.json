@@ -1,8 +1,8 @@
 {
     "name": "Return YouTube Subscribers",
-    "description": "Fixes YouTube's Subscriber Counts On Channel/Video Pages.",
+    "description": "Returns the full unabbreviated subscriber count to channels, videos, and search results on YouTube.",
     "manifest_version": 2,
-    "version": "3.1",
+    "version": "4.0",
     "icons": {
         "16": "icon.png",
         "32": "icon.png",
@@ -24,6 +24,6 @@
         }
     ],
     "permissions": [
-        "https://api.mgcounts.com/*"
+        "https://axern.space/*"
     ]
 }

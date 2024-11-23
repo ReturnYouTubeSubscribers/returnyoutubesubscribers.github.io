@@ -1,129 +1,184 @@
-var currentURL = window.location.href;
+let currentURL = window.location.href;
+const apiLink = "https://axern.space/api/get?platform=youtube&type=channel&id=";
+const apiPath = "data.estSubCount";
+const strType = "en-US";
+const possibleSubCounters = [
+    "#owner-sub-count",
+    "#page-header > yt-page-header-renderer > yt-page-header-view-model > div > div.page-header-view-model-wiz__page-header-headline > div > yt-content-metadata-view-model > div:nth-child(3) > span:nth-child(1)",
+];
+const possibleSources = [
+    ["https://axern.space/api/get?platform=youtube&type=channel&id=", "estSubCount"]
+];
 
-check()
-function check() {
-    if (document.getElementById("subscriber-count")) {
-        if (document.getElementById('edit-buttons').childElementCount == 2) {
-            stats()
+function getValueFromJson(json, path) {
+    const keys = path.split(/[\.\[\]\'\"]/).filter(Boolean);
+    let result = json;
+
+    for (let key of keys) {
+        if (Array.isArray(result)) {
+            const index = parseInt(key, 10);
+            if (index >= 0 && index < result.length) {
+                result = result[index];
+            } else {
+                return undefined;
+            }
+        } else if (result && result[key] !== undefined) {
+            result = result[key];
         } else {
-            stats()
+            return undefined;
         }
-    } else if (document.getElementById("owner-sub-count")) {
-        stats2()
+    }
+
+    return result;
+}
+
+function check() {
+    let url = window.location.href;
+    if (url.includes("/results?search_query=")) {
+        searchResults();
     } else {
-        setTimeout(function () {
-            check()
-        }, 100)
+        const subscriberCount = document.querySelector(possibleSubCounters[1]);
+        const ownerSubCount = document.querySelector(possibleSubCounters[0]);
+
+        if (subscriberCount) {
+            stats();
+        } else if (ownerSubCount) {
+            stats2();
+        } else {
+            setTimeout(check, 100);
+        }
+    }
+}
+
+async function fetchSubscriberData(channelId, targetSelectorIndex, element) {
+    try {
+        const apiUrl = possibleSources[targetSelectorIndex][0];
+        const apiPath = possibleSources[targetSelectorIndex][1];
+
+        const response = await fetch(apiUrl + channelId);
+        const data = await response.json();
+
+        if (data) {
+
+            let subscriberText = getValueFromJson(data, apiPath);
+
+            if (element) {
+                element.innerText = parseInt(subscriberText).toLocaleString(strType) + " subscribers";
+            } else {
+                const targetElement = document.querySelector(possibleSubCounters[targetSelectorIndex]);
+
+                if (!targetElement) return;
+                if (subscriberText !== undefined && subscriberText !== null) {
+                    subscriberText = String(subscriberText).trim();
+                    targetElement.innerText = parseInt(subscriberText).toLocaleString(strType) + " subscribers";
+                    targetElement.setAttribute("loaded", "true");
+                    targetElement.removeAttribute("is-empty");
+                    subs = parseInt(subscriberText);
+                }
+            }
+        } else {
+            console.error("Error fetching subscriber data:", data);
+        }
+
+    } catch (error) {
+        console.error("Error fetching subscriber data:", error);
     }
 }
 
 function stats() {
-    var req = new XMLHttpRequest();
-    req.open('GET', currentURL, false);
+    const req = new XMLHttpRequest();
+    req.open("GET", currentURL, false);
     req.send(null);
-    if (req.status == 200) {
-        let res = req.responseText
-        cid = res.split(`,{"key":"browse_id","value":"`)[1].split(`"},`)[0]
-        getCount()
-        async function getCount() {
-            await fetch('https://api.mgcounts.com/' + cid + '')
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        if (data.success == true) {
-                            if (document.querySelector("#subscriber-count").getAttribute('is-empty') == "") {
-                                document.querySelector("#subscriber-count").removeAttribute('is-empty')
-                            }
-                            if (data.verified == true) {
-                                document.querySelector("#subscriber-count").innerText = data.count.toLocaleString() + " subscribers " + data.by + ""
-                                document.querySelector("#subscriber-count").setAttribute("loaded", "true")
-                            } else {
-                                document.querySelector("#subscriber-count").innerText = data.count.toLocaleString() + " subscribers"
-                                document.querySelector("#subscriber-count").setAttribute("loaded", "true")
-                            }
-                        } else if (data.count == null) {
-                            document.querySelector("#subscriber-count").innerText = res.split(`,"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"`)[1].split(' subscribers')[0] + " subscribers"
-                            document.querySelector("#subscriber-count").setAttribute("loaded", "true")
-                        }
-                    }
-                }).catch(err => {
-                    console.log(err)
-                })
+
+    if (req.status === 200) {
+        const res = req.responseText;
+        const channelId = extractChannelId(res);
+        if (channelId) {
+            fetchSubscriberData(channelId, 1);
         }
     }
 }
 
 function stats2() {
-    var currentURL = window.location.href;
-    var req = new XMLHttpRequest();
-    req.open('GET', currentURL, false);
+    const req = new XMLHttpRequest();
+    req.open("GET", currentURL, false);
     req.send(null);
-    if (req.status == 200) {
-        let res = req.responseText
-        if (res.includes(`,{"key":"browse_id","value":"`)) {
-            cid = res.split(`,{"key":"browse_id","value":"`)[1].split(`"},`)[0]
-        } else if (res.includes(`"channelId":"`)) {
-            cid = res.split(`"channelId":"`)[1].split(`"`)[0]
-        } else {
-            cid = res.split(`"externalId":"`)[1].split(`"`)[0]
-        }
-        getCount()
-        async function getCount() {
-            await fetch('https://api.mgcounts.com/' + cid + '')
-                .then(response => response.json()).then(data => {
-                    if (data) {
-                        console.log(data)
-                        if (data.count == null) {
-                            document.querySelector("#owner-sub-count").innerText = "failed to load subscriber count"
-                            document.querySelector("#owner-sub-count").setAttribute("loaded", "true")
-                        } else {
-                            if (data.verified == true) {
-                                document.querySelector("#owner-sub-count").innerText = data.count.toLocaleString() + " subscribers " + data.by + ""
-                                document.querySelector("#owner-sub-count").setAttribute("loaded", "true")
-                            } else {
-                                document.querySelector("#owner-sub-count").innerText = data.count.toLocaleString() + " subscribers"
-                                document.querySelector("#owner-sub-count").setAttribute("loaded", "true")
-                            }
-                        }
-                        if (document.querySelector("#owner-sub-count").getAttribute('is-empty') == "") {
-                            document.querySelector("#owner-sub-count").removeAttribute('is-empty')
-                        }
-                    }
-                }).catch(err => {
-                    console.log(err)
-                })
+
+    if (req.status === 200) {
+        const res = req.responseText;
+        const channelId = extractChannelId(res);
+        if (channelId) {
+            fetchSubscriberData(channelId, 0);
         }
     }
 }
 
-setInterval(function () {
-    const url = window.location.href
-    if ((currentURL == window.location.href) == false) {
-        if (url.includes("/channel/") || url.includes("/c/") || url.includes("/user/") || url.includes("/watch?v=") || url.includes("/@")) {
-            if (url.includes("/channel/") || url.includes("/c/") || url.includes("/user/") || url.includes("/watch?v=") || url.includes("/@")) {
-                currentURL = window.location.href;
-            }
-            if (url.includes("/watch?v=")) {
-                stats2()
-            } else if (url.includes("/channel/") || url.includes("/c/") || url.includes("/user/") || url.includes("/@")) {
-                function thing() {
-                    if (document.querySelector("#subscriber-count")) {
-                        if (document.querySelector("#subscriber-count").getAttribute('is-empty') == "") {
-                            document.querySelector("#subscriber-count").removeAttribute('is-empty')
-                        }
-                        if (document.getElementById('edit-buttons').childElementCount == 2) {
-                            stats()
-                        } else {
-                            stats()
-                        }
+function extractChannelId(responseText) {
+    const browseIdMatch = responseText.match(/"browse_id":"(.*?)"/);
+    const channelIdMatch = responseText.match(/"channelId":"(.*?)"/);
+    const externalIdMatch = responseText.match(/"externalId":"(.*?)"/);
+
+    console.log("Browse ID:", browseIdMatch?.[1]);
+    console.log("Channel ID:", channelIdMatch?.[1]);
+    console.log("External ID:", externalIdMatch?.[1]);
+
+    return externalIdMatch?.[1] || browseIdMatch?.[1] || channelIdMatch?.[1] || null;
+}
+
+setInterval(() => {
+    const url = window.location.href;
+    if (currentURL !== url) {
+        currentURL = url;
+        console.log("URL changed:", url);
+        if (url.includes("/results?search_query=")) {
+            setTimeout(searchResults, 1000);
+        } else if (/\/channel\/|\/c\/|\/user\/|\/watch\?v=|\/@/.test(url)) {
+            const subscriberCount = document.querySelector(possibleSubCounters[1]);
+            const isWatchPage = url.includes("/watch?v=");
+
+            console.log(isWatchPage ? "Watch page" : "Channel page");
+            if (isWatchPage) {
+                stats2();
+            } else {
+                const updateStats = () => {
+                    if (subscriberCount && subscriberCount.getAttribute("is-empty") === null) {
+                        stats();
                     } else {
-                        setTimeout(function () {
-                            thing()
-                        }, 500)
+                        setTimeout(updateStats, 500);
                     }
-                }
-                thing()
+                };
+                updateStats();
             }
         }
     }
-}, 500)
+}, 500);
+
+async function searchResults() {
+    try {
+        let children = document.querySelector("#contents").children[0].children[2].children || [];
+        while (children.length === 0) {
+            children = document.querySelector("#contents").children[0].children[2].children;
+        }
+        let channelRenderers = document.querySelectorAll("ytd-channel-renderer");
+        for (const channelRenderer of channelRenderers) {
+            let link = channelRenderer.querySelector("#main-link").href;
+            if (link) {
+                if (link.includes("@")) {
+                    fetch("https://www.youtube.com/@" + link.split("@")[1])
+                        .then((response) => response.text())
+                        .then(async (data) => {
+                            let channelId = data.split('"externalId":"')[1].split('"')[0];
+                            fetchSubscriberData(channelId, 0, channelRenderer.querySelector("#video-count"));
+                        });
+                } else {
+
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching search results:", error);
+        setTimeout(searchResults, 1000);
+    }
+}
+
+check();
