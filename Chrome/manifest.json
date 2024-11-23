@@ -8,9 +8,6 @@
         "32": "icon.png",
         "128": "icon.png"
     },
-    "permissions": [
-        "activeTab"
-    ],
     "content_scripts": [
         {
             "js": [

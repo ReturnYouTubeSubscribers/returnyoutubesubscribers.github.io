@@ -64,8 +64,8 @@ function check() {
 
 async function fetchSubscriberData(channelId, targetSelectorIndex, element) {
     try {
-        const apiUrl = possibleSources[targetSelectorIndex][0];
-        const apiPath = possibleSources[targetSelectorIndex][1];
+        const apiUrl = possibleSources[0][0];
+        const apiPath = possibleSources[0][1];
 
         const response = await fetch(apiUrl + channelId);
         const data = await response.json();
