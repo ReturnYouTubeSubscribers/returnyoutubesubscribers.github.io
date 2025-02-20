@@ -11,30 +11,20 @@
 // ==/UserScript==
 
 let currentURL = window.location.href;
-const apiLink = "https://axern.space/api/get?platform=youtube&type=channel&id=";
-const apiPath = "data.estSubCount";
+const apiLink = "https://backend.mixerno.space/api/youtube/estv3/";
+const apiPath = "items[0].statistics.subscriberCount";
 const strType = "en-US";
 const possibleSubCounters = [
     "#owner-sub-count",
     "#page-header > yt-page-header-renderer > yt-page-header-view-model > div > div.page-header-view-model-wiz__page-header-headline > div > yt-content-metadata-view-model > div:nth-child(3) > span:nth-child(1)",
 ];
-const possibleSources = [
-    ["https://axern.space/api/get?platform=youtube&type=channel&id=", "estSubCount"]
-];
 
 function getValueFromJson(json, path) {
-    const keys = path.split(/[\.\[\]\'\"]/).filter(Boolean);
+    const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.'); // Converts [0] to .0 and splits on .
     let result = json;
 
     for (let key of keys) {
-        if (Array.isArray(result)) {
-            const index = parseInt(key, 10);
-            if (index >= 0 && index < result.length) {
-                result = result[index];
-            } else {
-                return undefined;
-            }
-        } else if (result && result[key] !== undefined) {
+        if (result && result[key] !== undefined) {
             result = result[key];
         } else {
             return undefined;
@@ -64,15 +54,13 @@ function check() {
 
 async function fetchSubscriberData(channelId, targetSelectorIndex, element) {
     try {
-        const apiUrl = possibleSources[0][0];
-        const apiPath = possibleSources[0][1];
-
-        const response = await fetch(apiUrl + channelId);
+        const response = await fetch(apiLink + channelId);
         const data = await response.json();
 
         if (data) {
 
             let subscriberText = getValueFromJson(data, apiPath);
+            console.log(subscriberText)
 
             if (element) {
                 element.innerText = parseInt(subscriberText).toLocaleString(strType) + " subscribers";

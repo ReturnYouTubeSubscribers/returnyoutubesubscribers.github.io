@@ -24,6 +24,6 @@
         }
     ],
     "permissions": [
-        "https://axern.space/*"
+        "https://backend.mixerno.space/*"
     ]
 }
