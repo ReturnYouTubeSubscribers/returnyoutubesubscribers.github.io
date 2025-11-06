@@ -2,7 +2,7 @@
     "name": "Return YouTube Subscribers",
     "description": "Returns the full unabbreviated subscriber count to channels, videos, and search results on YouTube.",
     "manifest_version": 2,
-    "version": "4.0",
+    "version": "4.2",
     "icons": {
         "16": "icon.png",
         "32": "icon.png",
