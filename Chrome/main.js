@@ -2,6 +2,7 @@ let currentURL = window.location.href;
 const apiLink = "https://backend.mixerno.space/api/youtube/estv3/";
 const apiPath = "items[0].statistics.subscriberCount";
 const strType = "en-US";
+let lastFetchedSubscriberCount = null;
 
 const possibleSubCounters = [
     "#owner-sub-count",
@@ -58,14 +59,37 @@ async function fetchSubscriberData(channelId, targetSelectorIndex, element) {
 
                 if (!targetElement) return;
                 if (subscriberText !== undefined && subscriberText !== null) {
-                    // Check if already loaded to prevent duplicate updates
                     if (targetElement.getAttribute("loaded") === "true") return;
                     
                     subscriberText = String(subscriberText).trim();
-                    targetElement.textContent = parseInt(subscriberText).toLocaleString(strType) + " subscribers";
+                    const formattedCount = parseInt(subscriberText).toLocaleString(strType);
+                    targetElement.textContent = formattedCount + " subscribers";
                     targetElement.setAttribute("loaded", "true");
                     targetElement.removeAttribute("is-empty");
                     subs = parseInt(subscriberText);
+                    lastFetchedSubscriberCount = formattedCount;
+                    
+                    const ownerSubCount = document.querySelector("#owner-sub-count");
+                    if (ownerSubCount && ownerSubCount.childNodes.length > 1) {
+                        for (let i = ownerSubCount.childNodes.length - 1; i >= 0; i--) {
+                            const node = ownerSubCount.childNodes[i];
+                            if (node.nodeType === Node.TEXT_NODE && node.textContent.match(/^\d+/)) {
+                                ownerSubCount.removeChild(node);
+                            }
+                        }
+                    }
+                    
+                    const updateAdditionalInfo = () => {
+                        const additionalInfoElement = document.querySelector("#additional-info-container > table > tbody > tr:nth-child(6) > td:nth-child(2)");
+                        if (additionalInfoElement) {
+                            additionalInfoElement.textContent = formattedCount + " subscribers";
+                            clearInterval(infoCheckInterval);
+                        }
+                    };
+                    
+                    updateAdditionalInfo();
+                    
+                    const infoCheckInterval = setInterval(updateAdditionalInfo, 500);
                 }
             }
         } else {
@@ -117,11 +141,22 @@ function extractChannelId(responseText) {
     return externalIdMatch?.[1] || browseIdMatch?.[1] || channelIdMatch?.[1] || null;
 }
 
+function clearLoadedState() {
+    for (let selector of possibleSubCounters) {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.removeAttribute("loaded");
+            console.log("[RYTS] Cleared loaded state for selector:", selector);
+        }
+    }
+}
+
 setInterval(() => {
     const url = window.location.href;
     if (currentURL !== url) {
         currentURL = url;
         console.log("[RYTS] URL changed:", url);
+        clearLoadedState();
         if (url.includes("/results?search_query=")) {
             setTimeout(searchResults, 1000);
         } else if (/\/channel\/|\/c\/|\/user\/|\/watch\?v=|\/@/.test(url)) {
