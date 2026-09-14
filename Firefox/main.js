@@ -70,12 +70,21 @@ async function fetchSubscriberData(channelId, targetSelectorIndex, element) {
                     lastFetchedSubscriberCount = formattedCount;
                     
                     const ownerSubCount = document.querySelector("#owner-sub-count");
-                    if (ownerSubCount && ownerSubCount.childNodes.length > 1) {
-                        for (let i = ownerSubCount.childNodes.length - 1; i >= 0; i--) {
-                            const node = ownerSubCount.childNodes[i];
-                            if (node.nodeType === Node.TEXT_NODE && node.textContent.match(/^\d+/)) {
-                                ownerSubCount.removeChild(node);
-                            }
+                    if (ownerSubCount) {
+                        ownerSubCount.__rytsExpectedText = formattedCount + " subscribers";
+                        ownerSubCount.textContent = ownerSubCount.__rytsExpectedText;
+
+                        if (!ownerSubCount.__rytsSubscriberObserver) {
+                            ownerSubCount.__rytsSubscriberObserver = new MutationObserver(() => {
+                                if (ownerSubCount.textContent !== ownerSubCount.__rytsExpectedText) {
+                                    ownerSubCount.textContent = ownerSubCount.__rytsExpectedText;
+                                }
+                            });
+                            ownerSubCount.__rytsSubscriberObserver.observe(ownerSubCount, {
+                                characterData: true,
+                                childList: true,
+                                subtree: true
+                            });
                         }
                     }
                     
