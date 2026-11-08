@@ -39,14 +39,17 @@ async function expectExact(page, label) {
     await page.goto("https://www.youtube.com/watch?v=smoke");
     try {
         await page.waitForFunction(
-            (want) => document.querySelector("#owner-sub-count")?.textContent === want,
+            (want) => {
+                const el = document.querySelector("#owner-sub-count");
+                return (el?.querySelector(".ryts-sr") ?? el)?.textContent === want; // rolling digits keep a plain copy
+            },
             EXPECTED,
             { timeout: 15000 }
         );
         console.log(`ok   ${label}`);
         return true;
     } catch {
-        const got = await page.locator("#owner-sub-count").textContent().catch(() => "?");
+        const got = await page.locator("#owner-sub-count").evaluate((el) => (el.querySelector(".ryts-sr") ?? el).textContent).catch(() => "?");
         console.error(`FAIL ${label}: expected "${EXPECTED}", got "${got}"`);
         return false;
     }

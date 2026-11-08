@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live subscriber count</title>
+  <link rel="icon" href="icons/icon-32.png">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body class="counter">
+  <header><a class="brand" href="https://ryts.mgcounts.com" target="_blank"><img src="icons/icon-32.png" alt="" width="24" height="24">Return YouTube Subscribers</a></header>
+  <main class="board" id="board" aria-live="off"></main>
+  <div class="bar">
+    <p class="status" id="status" role="status">Loading…</p>
+    <label>Race against
+      <select id="vs"><option value="">Nobody</option></select>
+    </label>
+    <button type="button" class="btn btn-quiet" id="save">Save image</button>
+    <button type="button" class="btn" id="fullscreen">Full screen</button>
+  </div>
+  <script src="shared.js"></script>
+  <script src="counter.js"></script>
+</body>
+</html>
