@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy policy | Return YouTube Subscribers</title>
+  <meta name="description" content="What data the Return YouTube Subscribers extension and userscript send, and to whom.">
+  <link rel="icon" href="./branding/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap" rel="stylesheet">
+  <style>
+    :root { --paper: #F5F6FA; --ink: #1A1C2E; --slate: #5D6178; --mist: #E3E6EF; --red: #E0262F; color-scheme: light; }
+    @media (prefers-color-scheme: dark) { :root { --paper: #171928; --ink: #ECEEF6; --slate: #A3A8C3; --mist: #2E3250; color-scheme: dark; } }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.65 "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    main { max-width: 42rem; margin: 0 auto; padding: 32px 16px 80px; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+    .logo { display: inline-flex; align-items: center; gap: 12px; font-weight: 800; text-decoration: none; letter-spacing: -0.02em; }
+    .logo img { width: 32px; height: 32px; }
+    h1 { font-size: clamp(2.25rem, 6vw, 3.25rem); line-height: 1.05; letter-spacing: -0.04em; margin: 56px 0 8px; }
+    h2 { font-size: 1.375rem; letter-spacing: -0.02em; margin: 40px 0 8px; }
+    .updated { color: var(--slate); }
+    p, li { color: var(--slate); }
+    strong { color: var(--ink); }
+    code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .9em; background: var(--mist); padding: 1px 6px; border-radius: 5px; color: var(--ink); }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="logo" href="./"><img src="./branding/logo.svg" alt="" width="32" height="32">Return YouTube Subscribers</a>
+    <h1>Privacy policy</h1>
+    <p class="updated">Last updated November 8, 2026. Applies to the browser extension (Chrome, Edge, Opera, Firefox, Safari) and the userscript.</p>
+
+    <h2>The short version</h2>
+    <p>The extension sends one thing: the public ID of the YouTube channel you're looking at, to Mixerno.space, to get its subscriber count. We don't collect, store, sell or share anything else, and there's no account.</p>
+
+    <h2>What is sent, and where</h2>
+    <ul>
+      <li><strong>To <code>backend.mixerno.space</code>:</strong> the channel ID (for example <code>UCx7…</code>) of the channel page, video or search result on screen. Your browser makes this request directly, so Mixerno.space also receives the standard information any website receives, such as your IP address. See <a href="https://mixerno.space">Mixerno.space</a> for how they handle requests.</li>
+      <li><strong>To <code>youtube.com</code>:</strong> on search result pages the extension loads channel pages from YouTube to find their IDs. These are ordinary requests to YouTube, made with your existing YouTube session.</li>
+    </ul>
+
+    <h2>What is not collected</h2>
+    <ul>
+      <li>No analytics, telemetry, crash reports or advertising IDs.</li>
+      <li>No browsing history is stored or sent anywhere beyond the single lookup above.</li>
+      <li>No personal information, YouTube account details or cookies are read or sent by the extension.</li>
+      <li>Nothing is stored on your device.</li>
+    </ul>
+
+    <h2>This website</h2>
+    <p>ryts.mgcounts.com shows Google AdSense ads and Disqus comments, and uses Google Fonts. Those services may set cookies and receive your IP address under their own privacy policies. The trailer is embedded from youtube-nocookie.com and only loads when you press play. None of this applies to the extension itself.</p>
+
+    <h2>Open source</h2>
+    <p>You can read every line the extension runs on <a href="https://github.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io">GitHub</a>. Packages are built from that source by a public GitHub Actions workflow.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy: open an issue on <a href="https://github.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io/issues">GitHub</a> or ask in our <a href="https://discord.gg/RRwzccVWfD">Discord</a>.</p>
+  </main>
+</body>
+</html>
