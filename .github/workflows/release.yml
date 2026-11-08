@@ -1,0 +1,168 @@
+# Publishes a release. Trigger it by pushing a version tag:
+#
+#   npm version 4.4.1     # bumps package.json, regenerates files, commits, tags v4.4.1
+#   git push --follow-tags
+#
+# Each store job is skipped (with a warning) until its secrets are configured,
+# so stores can be connected one at a time. Store jobs use GitHub environments;
+# add required reviewers to an environment to make that store wait for approval.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      stores:
+        description: Stores to publish the current main branch to (comma-separated)
+        default: chrome,firefox,edge
+
+permissions:
+  contents: read
+
+concurrency: release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Tag matches package.json
+        id: version
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build and lint
+        run: npm run lint
+
+      - name: Generated files are committed
+        run: git diff --exit-code -- userscript.js return-youtube-subscribers.user.js store/listings
+
+      - name: Smoke test
+        run: npx playwright install --with-deps chromium firefox webkit && npm run test:smoke
+
+      - name: Release notes
+        run: node scripts/release-notes.mjs > dist/release-notes.md
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.user.js \
+            --title "$GITHUB_REF_NAME" --notes-file dist/release-notes.md --verify-tag
+
+  chrome:
+    needs: build
+    if: contains(inputs.stores || 'chrome,firefox,edge', 'chrome')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: chrome-web-store
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
+      - name: Upload and publish to the Chrome Web Store
+        env:
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          if [ -z "$CLIENT_ID" ]; then
+            echo "::warning::Chrome Web Store secrets are not set; skipped. See docs/RELEASING.md."
+            exit 0
+          fi
+          npx chrome-webstore-upload \
+            --source "dist/return-youtube-subscribers-$VERSION-chrome.zip" \
+            --extension-id "$(node -p 'require("./package.json").extension.chromeId')"
+
+  firefox:
+    needs: build
+    if: contains(inputs.stores || 'chrome,firefox,edge', 'firefox')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: firefox-add-ons
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
+      - name: Submit to addons.mozilla.org
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -z "$WEB_EXT_API_KEY" ]; then
+            echo "::warning::AMO secrets are not set; skipped. See docs/RELEASING.md."
+            exit 0
+          fi
+          if [ -z "$(node -p 'require("./package.json").extension.firefoxId')" ]; then
+            echo "::error::package.json extension.firefoxId is empty. Copy the add-on's ID from the AMO Developer Hub."
+            exit 1
+          fi
+          node scripts/release-notes.mjs --amo "$RUNNER_TEMP/amo-metadata.json" > /dev/null
+          # Listed submissions go into Mozilla's review queue; don't wait for approval.
+          npx web-ext sign --channel listed --source-dir dist/firefox \
+            --amo-metadata "$RUNNER_TEMP/amo-metadata.json" --approval-timeout 0
+
+  edge:
+    needs: build
+    if: contains(inputs.stores || 'chrome,firefox,edge', 'edge')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: edge-add-ons
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
+      - name: Submit to Microsoft Edge Add-ons
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          EDGE_PRODUCT_ID=$(node -p 'require("./package.json").extension.edgeProductId')
+          if [ -z "$EDGE_API_KEY" ] || [ -z "$EDGE_PRODUCT_ID" ]; then
+            echo "::warning::Edge product ID or API secrets are not set; skipped. See docs/RELEASING.md."
+            exit 0
+          fi
+          export EDGE_PRODUCT_ID
+          scripts/publish-edge.sh "dist/return-youtube-subscribers-$VERSION-chrome.zip" dist/release-notes.md
