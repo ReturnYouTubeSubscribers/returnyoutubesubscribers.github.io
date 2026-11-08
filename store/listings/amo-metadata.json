@@ -1,0 +1,20 @@
+{
+  "categories": [
+    "social-communication"
+  ],
+  "summary": {
+    "en-US": "See exact subscriber counts on YouTube again: on channel pages, under videos, and in search results."
+  },
+  "description": {
+    "en-US": "Since September 2019 YouTube has rounded every subscriber count: \"1.2M subscribers\" could mean anything from 1,200,000 to 1,299,999. Return YouTube Subscribers puts the full number back.\n\nWHAT IT DOES\n• Channel pages: \"452M subscribers\" becomes \"452,318,906 subscribers\"\n• Watch pages: the exact count appears under the channel name on every video\n• Search results: exact counts on channel results\n• Keeps working as you browse; no page reloads needed\n\nHOW IT WORKS\nYouTube no longer publishes exact counts. The extension reads the ID of the channel you are viewing, asks the Mixerno.space API for its estimated count, and shows that in place of the rounded number. Counts are estimates and can differ slightly from YouTube's internal figure.\n\nPRIVACY\n• No account, no sign-in, nothing to configure\n• No analytics, ads or tracking inside the extension\n• The only data sent anywhere is the public ID of the channel you are viewing, to backend.mixerno.space, to look up its count\n• Open source on GitHub\n\nLINKS\nWebsite: https://ryts.mgcounts.com\nSource code: https://github.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io\nDiscord: https://discord.gg/RRwzccVWfD\n\nReturn YouTube Subscribers is an independent project and is not affiliated with YouTube or Google."
+  },
+  "homepage": {
+    "en-US": "https://ryts.mgcounts.com"
+  },
+  "support_url": {
+    "en-US": "https://github.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io/issues"
+  },
+  "version": {
+    "approval_notes": "To test: open any YouTube channel page (for example https://www.youtube.com/@YouTube) or video. The rounded count under the channel name (e.g. \"14.2M subscribers\") is replaced with the full number fetched from https://backend.mixerno.space/api/youtube/estv3/<channelId>. No minification or bundling is used; the submitted main.js is the source."
+  }
+}
