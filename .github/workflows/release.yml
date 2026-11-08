@@ -55,7 +55,7 @@ jobs:
         run: git diff --exit-code -- userscript.js return-youtube-subscribers.user.js store/listings
 
       - name: Smoke test
-        run: npx playwright install --with-deps chromium firefox webkit && npm run test:smoke
+        run: npx playwright install --with-deps chromium firefox webkit && npm run test:smoke && npm run test:e2e
 
       - name: Release notes
         run: node scripts/release-notes.mjs > dist/release-notes.md
