@@ -1,14 +1,19 @@
 // ==UserScript==
 // @name         Return YouTube Subscribers
 // @namespace    ryts.mgcounts.com
-// @version      4.2
-// @description  Returns the full unabbreviated subscriber count to channels, videos, and search results on YouTube.
+// @version      4.4.0
+// @description  See exact subscriber counts on YouTube again: on channel pages, under videos, and in search results.
 // @author       @ok_aj
+// @homepageURL  https://ryts.mgcounts.com
+// @supportURL   https://github.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io/issues
 // @match        *://*.youtube.com/*
-// @icon         https://raw.githubusercontent.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io/main/assets/icon.png
-// @run-at document-start
+// @icon         https://raw.githubusercontent.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io/main/src/icons/icon-128.png
+// @downloadURL  https://raw.githubusercontent.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io/main/return-youtube-subscribers.user.js
+// @updateURL    https://raw.githubusercontent.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io/main/return-youtube-subscribers.user.js
+// @run-at       document-start
 // @grant        none
 // ==/UserScript==
+// Generated from src/main.js by scripts/build.mjs. Do not edit by hand.
 
 let currentURL = window.location.href;
 const apiLink = "https://backend.mixerno.space/api/youtube/estv3/";
@@ -78,7 +83,6 @@ async function fetchSubscriberData(channelId, targetSelectorIndex, element) {
                     targetElement.textContent = formattedCount + " subscribers";
                     targetElement.setAttribute("loaded", "true");
                     targetElement.removeAttribute("is-empty");
-                    subs = parseInt(subscriberText);
                     lastFetchedSubscriberCount = formattedCount;
                     
                     const ownerSubCount = document.querySelector("#owner-sub-count");

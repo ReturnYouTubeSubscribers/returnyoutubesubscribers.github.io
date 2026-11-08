@@ -1,0 +1,52 @@
+# Runs on every push and pull request: build every package, lint it with
+# Mozilla's linter, check generated files are committed, and run the
+# end-to-end smoke test in Chromium (real extension), Firefox and WebKit.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Build and lint
+        run: npm run lint
+
+      - name: Generated files are committed
+        run: |
+          if ! git diff --exit-code -- userscript.js return-youtube-subscribers.user.js store/listings; then
+            echo "::error::Generated files are out of date. Run 'npm run build' and commit the result."
+            exit 1
+          fi
+
+      - name: Install browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Smoke test
+        run: npm run test:smoke
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: packages
+          path: |
+            dist/*.zip
+            dist/*.user.js

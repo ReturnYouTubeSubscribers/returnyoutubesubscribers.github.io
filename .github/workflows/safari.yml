@@ -1,0 +1,119 @@
+# Safari: converts the extension with Apple's safari-web-extension-converter,
+# builds the macOS app, and (on version tags, or when run by hand with
+# "upload") archives, signs and uploads it to App Store Connect.
+#
+# Signing is automatic: Xcode creates certificates and profiles in the cloud
+# using an App Store Connect API key, so no certificates live in this repo.
+# One-time setup is in docs/RELEASING.md.
+name: Safari
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - src/**
+      - scripts/safari-convert.sh
+      - store/assets/safari-appicon/**
+      - .github/workflows/safari.yml
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload this build to App Store Connect
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safari-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  safari:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      - name: Convert to an Xcode project
+        env:
+          SAFARI_BUNDLE_ID: ${{ vars.SAFARI_BUNDLE_ID }}
+        run: sh scripts/safari-convert.sh
+
+      - name: Find project and scheme
+        run: |
+          project=$(find build/safari -maxdepth 2 -name '*.xcodeproj' | head -n 1)
+          scheme=$(xcodebuild -list -json -project "$project" | python3 -c '
+          import json, sys
+          schemes = json.load(sys.stdin)["project"]["schemes"]
+          print(next(s for s in schemes if "Extension" not in s))')
+          {
+            echo "PROJECT=$project"
+            echo "SCHEME=$scheme"
+            echo "MARKETING_VERSION=$(node -p 'require("./package.json").version')"
+            echo "BUILD_NUMBER=${{ github.run_number }}"
+          } >> "$GITHUB_ENV"
+          echo "Project: $project, scheme: $scheme"
+
+      - name: Build (unsigned)
+        run: |
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            -derivedDataPath build/derived build \
+            CODE_SIGNING_ALLOWED=NO \
+            MARKETING_VERSION="$MARKETING_VERSION" CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
+          app=$(find build/derived/Build/Products/Release -maxdepth 1 -name '*.app' | head -n 1)
+          ditto -c -k --keepParent "$app" "build/return-youtube-subscribers-$MARKETING_VERSION-safari-unsigned.zip"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: safari-unsigned
+          path: build/*.zip
+
+      - name: Archive and upload to App Store Connect
+        if: github.ref_type == 'tag' || inputs.upload
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          if [ -z "$ASC_KEY_ID" ] || [ -z "$APPLE_TEAM_ID" ]; then
+            echo "::warning::App Store Connect secrets are not set; skipped upload. See docs/RELEASING.md."
+            exit 0
+          fi
+          key="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
+          printf '%s' "$ASC_KEY_P8" > "$key"
+          auth=(-allowProvisioningUpdates
+                -authenticationKeyPath "$key"
+                -authenticationKeyID "$ASC_KEY_ID"
+                -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            -archivePath build/app.xcarchive archive "${auth[@]}" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            MARKETING_VERSION="$MARKETING_VERSION" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            INFOPLIST_KEY_LSApplicationCategoryType=public.app-category.social-networking \
+            INFOPLIST_KEY_ITSAppUsesNonExemptEncryption=NO
+
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          PLIST
+
+          xcodebuild -exportArchive -archivePath build/app.xcarchive \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath build/export "${auth[@]}"
+          echo "Uploaded build $BUILD_NUMBER of $MARKETING_VERSION. Submit it for review in App Store Connect."

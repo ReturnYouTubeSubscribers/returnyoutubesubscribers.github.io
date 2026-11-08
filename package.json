@@ -1,0 +1,38 @@
+{
+  "name": "return-youtube-subscribers",
+  "version": "4.4.0",
+  "private": true,
+  "description": "Brings back exact, unabbreviated subscriber counts on YouTube.",
+  "homepage": "https://ryts.mgcounts.com",
+  "repository": "github:returnyoutubesubscribers/returnyoutubesubscribers.github.io",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "extension": {
+    "name": "Return YouTube Subscribers",
+    "shortName": "RYTS",
+    "chromeId": "ojecnnfmjkfobkhghilomnfihgonkjdm",
+    "firefoxSlug": "return-youtube-subscribers",
+    "firefoxId": "",
+    "edgeProductId": "",
+    "safariBundleId": "com.mgcounts.returnyoutubesubscribers"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "lint": "node scripts/build.mjs && web-ext lint --source-dir dist/firefox --self-hosted=false && node --check src/main.js",
+    "check": "npm run lint && git diff --exit-code -- userscript.js return-youtube-subscribers.user.js store/listings",
+    "assets": "node scripts/render-assets.mjs",
+    "start:firefox": "node scripts/build.mjs && web-ext run --source-dir dist/firefox --start-url https://www.youtube.com/@YouTube",
+    "start:chrome": "node scripts/build.mjs && web-ext run --target chromium --source-dir dist/chrome --start-url https://www.youtube.com/@YouTube",
+    "safari": "node scripts/build.mjs && sh scripts/safari-convert.sh",
+    "version": "node scripts/build.mjs && git add userscript.js return-youtube-subscribers.user.js store/listings",
+    "test:smoke": "node scripts/smoke-test.mjs"
+  },
+  "devDependencies": {
+    "chrome-webstore-upload-cli": "4.0.2",
+    "playwright": "1.63.0",
+    "web-ext": "10.8.0"
+  }
+}
