@@ -5,7 +5,17 @@
   "tagline": "Exact subscriber counts, back on YouTube.",
   "safariSubtitle": "Exact YouTube sub counts",
   "safariPromotionalText": "YouTube rounds every subscriber count. Return YouTube Subscribers puts the full number back on channel pages, watch pages and search results.",
-  "keywords": ["youtube", "subscribers", "subscriber count", "exact", "live count", "channel", "creator", "stats", "counter"],
+  "keywords": [
+    "youtube",
+    "subscribers",
+    "subscriber count",
+    "exact",
+    "live count",
+    "channel",
+    "creator",
+    "stats",
+    "counter"
+  ],
   "description": [
     "Since September 2019 YouTube has rounded every subscriber count: \"1.2M subscribers\" could mean anything from 1,200,000 to 1,299,999. Return YouTube Subscribers puts the full number back.",
     "",
@@ -14,6 +24,15 @@
     "• Watch pages: the exact count appears under the channel name on every video",
     "• Search results: exact counts on channel results",
     "• Keeps working as you browse; no page reloads needed",
+    "• Sort channel search results by exact subscriber count",
+    "• Exact counts on featured channels and channel lists",
+    "• Live streams: the count refreshes every 10 seconds, with rolling digits",
+    "• Full-screen live counter, and race mode to watch two channels side by side",
+    "• Save a shareable image of any count or race",
+    "• On your own channel: next milestone, subscribers to go and a projected date",
+    "• Toolbar popup ranking the channels you've viewed by how fast they're growing",
+    "• Choose exact (452,318,906) or compact (452.3M) numbers",
+    "• Hover any count to see where it came from and when it was updated",
     "",
     "HOW IT WORKS",
     "YouTube no longer publishes exact counts. The extension reads the ID of the channel you are viewing, asks the Mixerno.space API for its estimated count, and shows that in place of the rounded number. Counts are estimates and can differ slightly from YouTube's internal figure.",
@@ -21,6 +40,7 @@
     "PRIVACY",
     "• No account, no sign-in, nothing to configure",
     "• No analytics, ads or tracking inside the extension",
+    "• Growth history stays on your device",
     "• The only data sent anywhere is the public ID of the channel you are viewing, to backend.mixerno.space, to look up its count",
     "• Open source on GitHub",
     "",
@@ -48,16 +68,33 @@
   },
   "dataDisclosure": {
     "summary": "The extension sends the public channel ID of the YouTube channel being viewed to backend.mixerno.space to look up its subscriber count. Nothing else is collected, stored or sold.",
-    "chromeDataTypes": ["Web history (the ID of the YouTube channel currently being viewed)"],
+    "chromeDataTypes": [
+      "Web history (the ID of the YouTube channel currently being viewed)"
+    ],
     "singlePurpose": "Show exact, unabbreviated subscriber counts on YouTube in place of YouTube's rounded counts.",
     "hostPermissionJustification": "backend.mixerno.space is the API that returns the estimated subscriber count for a channel ID. youtube.com access is needed to read the channel ID and replace the rounded count on the page.",
     "reviewerNotes": "To test: open any YouTube channel page (for example https://www.youtube.com/@YouTube) or video. The rounded count under the channel name (e.g. \"14.2M subscribers\") is replaced with the full number fetched from https://backend.mixerno.space/api/youtube/estv3/<channelId>. No minification or bundling is used; the submitted main.js is the source."
   },
   "screenshots": [
-    { "file": "screenshot-1-channel.png", "caption": "Exact subscriber counts on every channel page" },
-    { "file": "screenshot-2-watch.png", "caption": "The full number under every video" },
-    { "file": "screenshot-3-search.png", "caption": "Exact counts in search results" },
-    { "file": "screenshot-4-before-after.png", "caption": "452M becomes 452,318,906" },
-    { "file": "screenshot-5-privacy.png", "caption": "Lightweight, open source, no tracking" }
+    {
+      "file": "screenshot-1-channel.png",
+      "caption": "Exact subscriber counts on every channel page"
+    },
+    {
+      "file": "screenshot-2-watch.png",
+      "caption": "The full number under every video"
+    },
+    {
+      "file": "screenshot-3-search.png",
+      "caption": "Exact counts in search results"
+    },
+    {
+      "file": "screenshot-4-before-after.png",
+      "caption": "452M becomes 452,318,906"
+    },
+    {
+      "file": "screenshot-5-privacy.png",
+      "caption": "Lightweight, open source, no tracking"
+    }
   ]
 }

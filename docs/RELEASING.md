@@ -190,7 +190,6 @@ hand:
   store's credentials at once.
 - **Each store fails alone.** Stores publish in separate jobs, so a Chrome review problem
   doesn't block Firefox, and each can be gated behind its own approval.
-- **Dependabot** keeps the actions and npm tools updated monthly.
 
 What still has to be done by hand: listing text and images on the Chrome, Edge and Opera
 dashboards (their APIs only accept packages), Opera uploads, and pressing **Submit for Review**

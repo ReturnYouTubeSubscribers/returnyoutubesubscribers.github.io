@@ -15,7 +15,7 @@ Return YouTube Subscribers
 See exact subscriber counts on YouTube again: on channel pages, under videos, and in search results.
 ```
 
-## Description (1274/10000)
+## Description (1901/10000)
 
 ```text
 Since September 2019 YouTube has rounded every subscriber count: "1.2M subscribers" could mean anything from 1,200,000 to 1,299,999. Return YouTube Subscribers puts the full number back.
@@ -25,6 +25,15 @@ WHAT IT DOES
 • Watch pages: the exact count appears under the channel name on every video
 • Search results: exact counts on channel results
 • Keeps working as you browse; no page reloads needed
+• Sort channel search results by exact subscriber count
+• Exact counts on featured channels and channel lists
+• Live streams: the count refreshes every 10 seconds, with rolling digits
+• Full-screen live counter, and race mode to watch two channels side by side
+• Save a shareable image of any count or race
+• On your own channel: next milestone, subscribers to go and a projected date
+• Toolbar popup ranking the channels you've viewed by how fast they're growing
+• Choose exact (452,318,906) or compact (452.3M) numbers
+• Hover any count to see where it came from and when it was updated
 
 HOW IT WORKS
 YouTube no longer publishes exact counts. The extension reads the ID of the channel you are viewing, asks the Mixerno.space API for its estimated count, and shows that in place of the rounded number. Counts are estimates and can differ slightly from YouTube's internal figure.
@@ -32,6 +41,7 @@ YouTube no longer publishes exact counts. The extension reads the ID of the chan
 PRIVACY
 • No account, no sign-in, nothing to configure
 • No analytics, ads or tracking inside the extension
+• Growth history stays on your device
 • The only data sent anywhere is the public ID of the channel you are viewing, to backend.mixerno.space, to look up its count
 • Open source on GitHub
 

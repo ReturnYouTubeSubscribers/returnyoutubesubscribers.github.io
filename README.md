@@ -41,7 +41,7 @@ npm run lint
 ```
 
 ```bash
-npm run test:smoke
+npm run test:smoke && npm run test:e2e
 ```
 
 Releasing, store credentials and the Safari setup are in [docs/RELEASING.md](docs/RELEASING.md).
