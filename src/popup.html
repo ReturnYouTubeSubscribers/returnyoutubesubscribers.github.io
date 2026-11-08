@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Return YouTube Subscribers</title>
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body class="popup">
+  <header class="brand"><img src="icons/icon-48.png" alt="" width="28" height="28">Return YouTube Subscribers</header>
+
+  <div class="tabs" role="tablist" aria-label="Channels">
+    <button type="button" role="tab" aria-selected="true" data-view="growing">Fastest growing</button>
+    <button type="button" role="tab" aria-selected="false" data-view="recent">Recently viewed</button>
+  </div>
+  <ol class="list" id="list" role="tabpanel"></ol>
+  <p class="empty" id="empty" hidden></p>
+
+  <section aria-labelledby="race-title">
+    <h2 id="race-title">Race two channels</h2>
+    <div class="race-row">
+      <select id="race-a" aria-label="First channel"></select>
+      <span>vs</span>
+      <select id="race-b" aria-label="Second channel"></select>
+    </div>
+    <button type="button" class="btn" id="race">Start race</button>
+  </section>
+
+  <section class="settings" aria-labelledby="format-title">
+    <h2 id="format-title">Number format</h2>
+    <label><input type="radio" name="format" value="exact"> Exact <span>452,318,906</span></label>
+    <label><input type="radio" name="format" value="compact"> Compact <span>452.3M</span></label>
+  </section>
+
+  <p class="fine">Growth is measured from counts the extension sees while you browse YouTube, and is stored only on this device.</p>
+  <script src="shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

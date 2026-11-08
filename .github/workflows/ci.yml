@@ -44,6 +44,15 @@ jobs:
       - name: Smoke test
         run: npm run test:smoke
 
+      - name: Feature tests
+        run: npm run test:e2e -- --screenshots screenshots
+
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: feature-screenshots
+          path: screenshots/
+
       - uses: actions/upload-artifact@v5
         with:
           name: packages

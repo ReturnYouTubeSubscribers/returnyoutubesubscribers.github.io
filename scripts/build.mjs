@@ -101,18 +101,25 @@ function zip(files) {
 
 // ---------- extension packages ----------
 
-const mainJs = readFileSync(r("src/main.js"), "utf8");
 const icons = readdirSync(r("src/icons")).filter((f) => /^icon-\d+\.png$/.test(f)).sort();
+// Every file in src/ except the manifest template ships in the package.
+const sourceFiles = readdirSync(r("src")).filter((f) => f !== "manifest.json" && !f.startsWith(".") && f !== "icons").sort();
 
 rmSync(r("dist"), { recursive: true, force: true });
 for (const [target, transform] of Object.entries(targets)) {
     const manifest = transform(JSON.parse(manifestSource));
+    const referenced = [
+        ...manifest.content_scripts.flatMap((c) => c.js),
+        manifest.action?.default_popup,
+        ...(manifest.web_accessible_resources || []).flatMap((w) => w.resources),
+    ].filter(Boolean);
+    for (const file of referenced) if (!sourceFiles.includes(file)) errors.push(`${target}: manifest references missing src/${file}`);
     for (const file of Object.values(manifest.icons)) {
         if (!icons.includes(file.replace("icons/", ""))) errors.push(`${target}: missing ${file} (run npm run assets)`);
     }
     const files = [
         { name: "manifest.json", data: Buffer.from(JSON.stringify(manifest, null, 2) + "\n") },
-        { name: "main.js", data: Buffer.from(mainJs) },
+        ...sourceFiles.map((f) => ({ name: f, data: readFileSync(r("src", f)) })),
         ...icons.map((f) => ({ name: `icons/${f}`, data: readFileSync(r("src/icons", f)) })),
     ];
     const dir = r("dist", target);
@@ -139,9 +146,10 @@ const userscript = `// ==UserScript==
 // @run-at       document-start
 // @grant        none
 // ==/UserScript==
-// Generated from src/main.js by scripts/build.mjs. Do not edit by hand.
+// Generated from src/shared.js and src/main.js by scripts/build.mjs. Do not edit by hand.
 
-${mainJs}`;
+${readFileSync(r("src/shared.js"), "utf8")}
+${readFileSync(r("src/main.js"), "utf8")}`;
 // userscript.js is kept for people who installed from the old URL.
 writeFileSync(r("userscript.js"), userscript);
 writeFileSync(r(`${slug}.user.js`), userscript);
