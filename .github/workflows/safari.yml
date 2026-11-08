@@ -72,7 +72,7 @@ jobs:
           app=$(find build/derived/Build/Products/Release -maxdepth 1 -name '*.app' | head -n 1)
           ditto -c -k --keepParent "$app" "build/return-youtube-subscribers-$MARKETING_VERSION-safari-unsigned.zip"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: safari-unsigned
           path: build/*.zip

@@ -60,7 +60,7 @@ jobs:
       - name: Release notes
         run: node scripts/release-notes.mjs > dist/release-notes.md
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
