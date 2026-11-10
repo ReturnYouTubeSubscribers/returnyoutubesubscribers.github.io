@@ -76,10 +76,12 @@ youtube, subscribers, subscriber count, exact, live count, channel, creator
 Screenshots, in order:
 
 1. `store/assets/screenshot-1-channel.png`: Exact subscriber counts on every channel page
-2. `store/assets/screenshot-2-watch.png`: The full number under every video
-3. `store/assets/screenshot-3-search.png`: Exact counts in search results
-4. `store/assets/screenshot-4-before-after.png`: 452M becomes 452,318,906
-5. `store/assets/screenshot-5-privacy.png`: Lightweight, open source, no tracking
+2. `store/assets/screenshot-2-search.png`: Exact counts in search results, sortable by subscribers
+3. `store/assets/screenshot-3-race.png`: Race any two channels, live
+4. `store/assets/screenshot-4-your-channel.png`: Your next milestone, with real Studio counts via NextCounts
+5. `store/assets/screenshot-5-before-after.png`: 452M becomes 452,318,906
+6. `store/assets/screenshot-6-watch.png`: The full number under every video
+7. `store/assets/screenshot-7-privacy.png`: Lightweight, open source, no tracking
 
 ## Notes for certification
 

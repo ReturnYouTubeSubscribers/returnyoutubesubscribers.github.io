@@ -20,10 +20,11 @@ if (shotsDir) mkdirSync(shotsDir, { recursive: true });
 // ---------- fixture data ----------
 
 const CH = {
-    mrbeast: { id: "UCX6OQ3DkcsbYNE6H8uQQuVA", name: "MrBeast", handle: "@MrBeast", count: 452318906, rounded: "452M", color: "#3A7BD5,#6C5CE7", initials: "MB" },
-    gaming: { id: "UCIPPMRA040LQr5QPyJEbmXA", name: "MrBeast Gaming", handle: "@MrBeastGaming", count: 51872340, rounded: "51.8M", color: "#00B894,#3A7BD5", initials: "MG" },
-    philanthropy: { id: "UCAiLfjNXkNv24uhpzUgPa6A", name: "Beast Philanthropy", handle: "@BeastPhilanthropy", count: 28406915, rounded: "28.4M", color: "#F7B267,#E0262F", initials: "BP" },
-    sfmg: { id: "UCsfmgFixture00000000000", name: "Straight From MG", handle: "@sfmg", count: 34010, rounded: "34K", avatar: "https://yt3.ggpht.com/fixture/sfmg.png" },
+    // Real profile pictures (store/templates/avatars/); counts are illustrative.
+    mrbeast: { id: "UCX6OQ3DkcsbYNE6H8uQQuVA", name: "MrBeast", handle: "@MrBeast", count: 452318906, rounded: "452M", avatar: "https://yt3.ggpht.com/fixture/mrbeast.jpg" },
+    pewdiepie: { id: "UC-lHJZR3Gqxm24_Vd_AJ5Yw", name: "PewDiePie", handle: "@PewDiePie", count: 110431882, rounded: "110M", avatar: "https://yt3.ggpht.com/fixture/pewdiepie.jpg" },
+    thefatrat: { id: "UCa_UMppcMsHIzb5LDx1u9zQ", name: "TheFatRat", handle: "@TheFatRat", count: 6912407, rounded: "6.91M", avatar: "https://yt3.ggpht.com/fixture/thefatrat.jpg" },
+    sfmg: { id: "UCsfmgFixture00000000000", name: "Straight From MG", handle: "@sfmg", count: 34010, rounded: "34K", avatar: "https://yt3.ggpht.com/fixture/sfmg.jpg" },
 };
 const byId = Object.fromEntries(Object.values(CH).map((c) => [c.id, c]));
 const byHandle = Object.fromEntries(Object.values(CH).map((c) => [c.handle.toLowerCase(), c]));
@@ -59,11 +60,11 @@ function searchPage() {
         <div class="muted" style="font-size:12px"><span id="subscribers">${c.handle}</span> • <span id="video-count">${c.rounded} subscribers</span></div>
         <div class="muted" style="font-size:12px;margin-top:6px">Official ${c.name} channel.</div></div></a>
       <span class="btn">Subscribe</span></ytd-channel-renderer>`;
-    return shell({ query: "mrbeast", html: `<div style="padding-top:8px">${[CH.philanthropy, CH.mrbeast, CH.gaming].map(row).join("")}</div>` });
+    return shell({ query: "biggest youtubers", html: `<div style="padding-top:8px">${[CH.thefatrat, CH.mrbeast, CH.pewdiepie].map(row).join("")}</div>` });
 }
 
 function channelPage(c, { dark = false } = {}) {
-    const featured = [CH.mrbeast, CH.gaming, CH.philanthropy].map((f) => `<ytd-grid-channel-renderer style="display:block;text-align:center;width:210px">
+    const featured = [CH.mrbeast, CH.pewdiepie, CH.thefatrat].map((f) => `<ytd-grid-channel-renderer style="display:block;text-align:center;width:210px">
       <a href="/${f.handle}" style="display:grid;justify-items:center;gap:10px;text-decoration:none;color:inherit">${avatar(f, 104)}
       <span style="font-weight:500">${f.name}</span></a><span id="subscribers" class="muted" style="font-size:12px">${f.rounded} subscribers</span></ytd-grid-channel-renderer>`).join("");
     return shell({ html: `
@@ -138,7 +139,7 @@ await context.route("https://api-v2.nextcounts.com/api/youtube/channel/**", (rou
     json(route, 200, id === CH.sfmg.id ? { verifiedSubCount: true, subcount: STUDIO_COUNT, name: CH.sfmg.name } : { verifiedSubCount: false });
 });
 await context.route("https://api.nextcounts.com/api/youtube/studio/channel/**", (route) => json(route, nextcountsDown ? 503 : 404, {}));
-await context.route("https://yt3.ggpht.com/**", (route) => route.fulfill({ contentType: "image/png", body: readFileSync(join(root, "store/templates/avatars/sfmg.png")) }));
+await context.route("https://yt3.ggpht.com/**", (route) => route.fulfill({ contentType: "image/jpeg", body: readFileSync(join(root, "store/templates/avatars", route.request().url().split("/").pop())) }));
 let pageFor = () => "";
 await context.route("https://www.youtube.com/**", (route) => {
     const url = new URL(route.request().url());
@@ -177,7 +178,7 @@ await check("search: exact counts and sort by subscribers", async () => {
     await page.getByRole("button", { name: "Sort channels by subscribers" }).click();
     await until(page, () => document.querySelector(".ryts-chip")?.getAttribute("aria-pressed") === "true");
     const order = await page.$$eval("ytd-channel-renderer #text", (els) => els.map((e) => e.textContent));
-    if (order.join() !== "MrBeast,MrBeast Gaming,Beast Philanthropy") throw new Error("order was " + order.join());
+    if (order.join() !== "MrBeast,PewDiePie,TheFatRat") throw new Error("order was " + order.join());
     if ((await text(page, "ytd-channel-renderer #video-count")) !== "452,318,906 subscribers") throw new Error("count not exact");
     await page.locator("ytd-channel-renderer #video-count").first().hover();
     await page.waitForSelector(".ryts-tip:not([hidden])");
@@ -214,12 +215,12 @@ for (const dark of [false, true]) {
 
 // 2b. A channel outside the project falls back to Mixerno and gets the join link
 await check("own channel outside the Unabbreviated Project: Mixerno estimate and join link", async () => {
-    pageFor = () => channelPage(CH.gaming);
+    pageFor = () => channelPage(CH.pewdiepie);
     const page = await context.newPage();
-    await page.goto("https://www.youtube.com/@MrBeastGaming");
+    await page.goto("https://www.youtube.com/@PewDiePie");
     await until(page, () => document.querySelector(".ryts-panel"));
     const header = await text(page, "yt-content-metadata-view-model > div:nth-child(3) > span");
-    if (header !== "51,872,340 subscribers") throw new Error("header was " + header);
+    if (header !== "110,431,882 subscribers") throw new Error("header was " + header);
     const tip = await page.locator("yt-content-metadata-view-model > div:nth-child(3) > span").getAttribute("data-ryts-tip");
     if (!/Estimated by Mixerno\.space/.test(tip)) throw new Error("tooltip: " + tip);
     const join = page.getByRole("link", { name: "Show your exact count" });
@@ -300,7 +301,7 @@ await check("live counter, race mode and share image", async () => {
     await page.goto(`chrome-extension://${extId}/counter.html?c=${CH.mrbeast.id}&n=MrBeast`);
     await page.waitForFunction(() => document.querySelector(".big .ryts-sr"));
     await shot(page, "6-big-counter.png");
-    await page.goto(`chrome-extension://${extId}/counter.html?c=${CH.mrbeast.id}&n=MrBeast&vs=${CH.gaming.id}&vn=MrBeast%20Gaming`);
+    await page.goto(`chrome-extension://${extId}/counter.html?c=${CH.mrbeast.id}&n=MrBeast&vs=${CH.pewdiepie.id}&vn=PewDiePie`);
     await page.waitForFunction(() => /leads by/.test(document.querySelector(".gap")?.textContent || ""));
     const gap = await page.locator(".gap").textContent();
     if (!/MrBeast leads by [\d,]+ subscribers/.test(gap)) throw new Error("gap: " + gap);

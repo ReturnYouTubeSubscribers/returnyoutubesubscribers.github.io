@@ -82,19 +82,27 @@
       "caption": "Exact subscriber counts on every channel page"
     },
     {
-      "file": "screenshot-2-watch.png",
-      "caption": "The full number under every video"
+      "file": "screenshot-2-search.png",
+      "caption": "Exact counts in search results, sortable by subscribers"
     },
     {
-      "file": "screenshot-3-search.png",
-      "caption": "Exact counts in search results"
+      "file": "screenshot-3-race.png",
+      "caption": "Race any two channels, live"
     },
     {
-      "file": "screenshot-4-before-after.png",
+      "file": "screenshot-4-your-channel.png",
+      "caption": "Your next milestone, with real Studio counts via NextCounts"
+    },
+    {
+      "file": "screenshot-5-before-after.png",
       "caption": "452M becomes 452,318,906"
     },
     {
-      "file": "screenshot-5-privacy.png",
+      "file": "screenshot-6-watch.png",
+      "caption": "The full number under every video"
+    },
+    {
+      "file": "screenshot-7-privacy.png",
       "caption": "Lightweight, open source, no tracking"
     }
   ]
