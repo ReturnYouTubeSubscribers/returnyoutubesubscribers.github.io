@@ -2,8 +2,21 @@
 // Plain script (no modules) so it also works as part of the userscript.
 
 var RYTS = (() => {
-    const API = "https://backend.mixerno.space/api/youtube/estv3/";
-    const SOURCE = "Mixerno.space";
+    // Count sources, best first. NextCounts' Unabbreviated Project has the real count for
+    // channels that connected YouTube Studio; everything else uses Mixerno's estimate.
+    const MIXERNO = "https://backend.mixerno.space/api/youtube/estv3/";
+    const NEXTCOUNTS_LIST = "https://api.nextcounts.com/api/youtube/studio/channels";
+    const NEXTCOUNTS_V2 = "https://api-v2.nextcounts.com/api/youtube/channel/";
+    const NEXTCOUNTS_REALTIME = (id) => `https://api.nextcounts.com/api/youtube/studio/channel/${encodeURIComponent(id)}/realtime`;
+    const SOURCES = {
+        nextcounts: {
+            name: "NextCounts", exact: true,
+            tooltip: "Real count from YouTube Studio, shared by the channel through NextCounts' Unabbreviated Project",
+        },
+        mixerno: { name: "Mixerno.space", exact: false, tooltip: "Estimated by Mixerno.space" },
+    };
+    const API = MIXERNO; // kept for older callers
+    const SOURCE = SOURCES.mixerno.name;
 
     // Extension storage when running as an extension, localStorage in the userscript.
     const ext = globalThis.browser?.storage?.local ? globalThis.browser
@@ -52,28 +65,90 @@ var RYTS = (() => {
 
     // ---------- counts ----------
 
-    const cache = new Map(); // id -> { count, at, promise }
+    const cache = new Map(); // id -> { count, source, at, promise }
     const CACHE_MS = 60_000;
+    const getJSON = (url) => fetch(url).then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))));
+    const toCount = (v) => {
+        const n = typeof v === "number" ? v : parseInt(v, 10);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+    };
 
-    async function fetchCount(id, { fresh = false } = {}) {
+    // Channels in the Unabbreviated Project. Loaded at most once an hour, so lists of
+    // channels (search, featured) never send NextCounts one request per channel.
+    const LIST_MS = 60 * 60_000, LIST_RETRY_MS = 10 * 60_000;
+    let studio = null; // { ids: Set | null, at }
+    let studioLoading = null;
+    async function studioChannels() {
+        if (studio && Date.now() - studio.at < (studio.ids ? LIST_MS : LIST_RETRY_MS)) return studio.ids;
+        if (!studioLoading) {
+            studioLoading = (async () => {
+                const saved = await store.get("nextcountsStudio", null);
+                if (saved && Date.now() - saved.at < LIST_MS) return { ids: new Set(saved.ids), at: saved.at };
+                try {
+                    const body = await getJSON(NEXTCOUNTS_LIST);
+                    const ids = (Array.isArray(body?.data) ? body.data : []).map((c) => c?.id).filter((id) => /^UC[\w-]{22}$/.test(id || ""));
+                    if (!ids.length) throw new Error("empty list");
+                    await store.set("nextcountsStudio", { ids, at: Date.now() });
+                    return { ids: new Set(ids), at: Date.now() };
+                } catch {
+                    return { ids: null, at: Date.now() }; // unknown: try again in 10 minutes
+                }
+            })().finally(() => { studioLoading = null; });
+        }
+        studio = await studioLoading;
+        return studio.ids;
+    }
+
+    // The verified Studio count, or null when the channel isn't in the project.
+    async function nextcountsCount(id) {
+        try {
+            const v2 = await getJSON(NEXTCOUNTS_V2 + encodeURIComponent(id));
+            if (v2?.verifiedSubCount === false) return null;
+            if (v2?.verifiedSubCount === true && toCount(v2.subcount) !== null) return toCount(v2.subcount);
+        } catch { /* fall through to the older endpoint */ }
+        try {
+            const old = await getJSON(NEXTCOUNTS_REALTIME(id));
+            return old?.success === true ? toCount(old.data?.subscribers) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    async function mixernoCount(id) {
+        try {
+            return toCount((await getJSON(MIXERNO + encodeURIComponent(id)))?.items?.[0]?.statistics?.subscriberCount);
+        } catch {
+            return null;
+        }
+    }
+
+    // `bulk` marks lookups for lists of channels: those only ask NextCounts when the
+    // participant list confirms the channel is in the project.
+    async function lookup(id, bulk) {
+        const ids = await studioChannels();
+        if (ids ? ids.has(id) : !bulk) {
+            const count = await nextcountsCount(id);
+            if (count !== null) return { count, source: "nextcounts" };
+        }
+        const count = await mixernoCount(id);
+        return count === null ? null : { count, source: "mixerno" };
+    }
+
+    async function fetchCount(id, { fresh = false, bulk = false } = {}) {
         const hit = cache.get(id);
         if (hit?.promise) return hit.promise;
-        if (!fresh && hit && Date.now() - hit.at < CACHE_MS) return hit.count;
-        const promise = fetch(API + encodeURIComponent(id))
-            .then((r) => (r.ok ? r.json() : null))
-            .then((data) => {
-                const n = parseInt(data?.items?.[0]?.statistics?.subscriberCount, 10);
-                return Number.isFinite(n) ? n : null;
-            })
-            .catch(() => null)
-            .then((count) => {
-                cache.set(id, count === null ? undefined : { count, at: Date.now() });
-                if (count === null) cache.delete(id);
-                return count;
-            });
+        if (!fresh && hit?.at && Date.now() - hit.at < CACHE_MS) return hit.count;
+        const promise = lookup(id, bulk).then((result) => {
+            if (result) cache.set(id, { ...result, at: Date.now() });
+            else cache.delete(id);
+            return result?.count ?? null;
+        });
         cache.set(id, { ...hit, promise });
         return promise;
     }
+
+    // Which source the latest count for `id` came from: SOURCES.nextcounts or SOURCES.mixerno.
+    const sourceOf = (id) => SOURCES[cache.get(id)?.source] || SOURCES.mixerno;
 
     const updatedAt = (id) => cache.get(id)?.at ?? Date.now();
 
@@ -177,7 +252,7 @@ var RYTS = (() => {
     };
 
     return {
-        API, SOURCE, store, getSettings, setSettings, onSettings,
-        format, exact, time, canRoll, roll, fetchCount, updatedAt, observe, getHistory, growthPerDay, nextMilestone, pageUrl,
+        API, SOURCE, SOURCES, store, getSettings, setSettings, onSettings,
+        format, exact, time, canRoll, roll, fetchCount, sourceOf, updatedAt, observe, getHistory, growthPerDay, nextMilestone, pageUrl,
     };
 })();

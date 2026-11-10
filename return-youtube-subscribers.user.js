@@ -19,8 +19,21 @@
 // Plain script (no modules) so it also works as part of the userscript.
 
 var RYTS = (() => {
-    const API = "https://backend.mixerno.space/api/youtube/estv3/";
-    const SOURCE = "Mixerno.space";
+    // Count sources, best first. NextCounts' Unabbreviated Project has the real count for
+    // channels that connected YouTube Studio; everything else uses Mixerno's estimate.
+    const MIXERNO = "https://backend.mixerno.space/api/youtube/estv3/";
+    const NEXTCOUNTS_LIST = "https://api.nextcounts.com/api/youtube/studio/channels";
+    const NEXTCOUNTS_V2 = "https://api-v2.nextcounts.com/api/youtube/channel/";
+    const NEXTCOUNTS_REALTIME = (id) => `https://api.nextcounts.com/api/youtube/studio/channel/${encodeURIComponent(id)}/realtime`;
+    const SOURCES = {
+        nextcounts: {
+            name: "NextCounts", exact: true,
+            tooltip: "Real count from YouTube Studio, shared by the channel through NextCounts' Unabbreviated Project",
+        },
+        mixerno: { name: "Mixerno.space", exact: false, tooltip: "Estimated by Mixerno.space" },
+    };
+    const API = MIXERNO; // kept for older callers
+    const SOURCE = SOURCES.mixerno.name;
 
     // Extension storage when running as an extension, localStorage in the userscript.
     const ext = globalThis.browser?.storage?.local ? globalThis.browser
@@ -69,28 +82,90 @@ var RYTS = (() => {
 
     // ---------- counts ----------
 
-    const cache = new Map(); // id -> { count, at, promise }
+    const cache = new Map(); // id -> { count, source, at, promise }
     const CACHE_MS = 60_000;
+    const getJSON = (url) => fetch(url).then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))));
+    const toCount = (v) => {
+        const n = typeof v === "number" ? v : parseInt(v, 10);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+    };
 
-    async function fetchCount(id, { fresh = false } = {}) {
+    // Channels in the Unabbreviated Project. Loaded at most once an hour, so lists of
+    // channels (search, featured) never send NextCounts one request per channel.
+    const LIST_MS = 60 * 60_000, LIST_RETRY_MS = 10 * 60_000;
+    let studio = null; // { ids: Set | null, at }
+    let studioLoading = null;
+    async function studioChannels() {
+        if (studio && Date.now() - studio.at < (studio.ids ? LIST_MS : LIST_RETRY_MS)) return studio.ids;
+        if (!studioLoading) {
+            studioLoading = (async () => {
+                const saved = await store.get("nextcountsStudio", null);
+                if (saved && Date.now() - saved.at < LIST_MS) return { ids: new Set(saved.ids), at: saved.at };
+                try {
+                    const body = await getJSON(NEXTCOUNTS_LIST);
+                    const ids = (Array.isArray(body?.data) ? body.data : []).map((c) => c?.id).filter((id) => /^UC[\w-]{22}$/.test(id || ""));
+                    if (!ids.length) throw new Error("empty list");
+                    await store.set("nextcountsStudio", { ids, at: Date.now() });
+                    return { ids: new Set(ids), at: Date.now() };
+                } catch {
+                    return { ids: null, at: Date.now() }; // unknown: try again in 10 minutes
+                }
+            })().finally(() => { studioLoading = null; });
+        }
+        studio = await studioLoading;
+        return studio.ids;
+    }
+
+    // The verified Studio count, or null when the channel isn't in the project.
+    async function nextcountsCount(id) {
+        try {
+            const v2 = await getJSON(NEXTCOUNTS_V2 + encodeURIComponent(id));
+            if (v2?.verifiedSubCount === false) return null;
+            if (v2?.verifiedSubCount === true && toCount(v2.subcount) !== null) return toCount(v2.subcount);
+        } catch { /* fall through to the older endpoint */ }
+        try {
+            const old = await getJSON(NEXTCOUNTS_REALTIME(id));
+            return old?.success === true ? toCount(old.data?.subscribers) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    async function mixernoCount(id) {
+        try {
+            return toCount((await getJSON(MIXERNO + encodeURIComponent(id)))?.items?.[0]?.statistics?.subscriberCount);
+        } catch {
+            return null;
+        }
+    }
+
+    // `bulk` marks lookups for lists of channels: those only ask NextCounts when the
+    // participant list confirms the channel is in the project.
+    async function lookup(id, bulk) {
+        const ids = await studioChannels();
+        if (ids ? ids.has(id) : !bulk) {
+            const count = await nextcountsCount(id);
+            if (count !== null) return { count, source: "nextcounts" };
+        }
+        const count = await mixernoCount(id);
+        return count === null ? null : { count, source: "mixerno" };
+    }
+
+    async function fetchCount(id, { fresh = false, bulk = false } = {}) {
         const hit = cache.get(id);
         if (hit?.promise) return hit.promise;
-        if (!fresh && hit && Date.now() - hit.at < CACHE_MS) return hit.count;
-        const promise = fetch(API + encodeURIComponent(id))
-            .then((r) => (r.ok ? r.json() : null))
-            .then((data) => {
-                const n = parseInt(data?.items?.[0]?.statistics?.subscriberCount, 10);
-                return Number.isFinite(n) ? n : null;
-            })
-            .catch(() => null)
-            .then((count) => {
-                cache.set(id, count === null ? undefined : { count, at: Date.now() });
-                if (count === null) cache.delete(id);
-                return count;
-            });
+        if (!fresh && hit?.at && Date.now() - hit.at < CACHE_MS) return hit.count;
+        const promise = lookup(id, bulk).then((result) => {
+            if (result) cache.set(id, { ...result, at: Date.now() });
+            else cache.delete(id);
+            return result?.count ?? null;
+        });
         cache.set(id, { ...hit, promise });
         return promise;
     }
+
+    // Which source the latest count for `id` came from: SOURCES.nextcounts or SOURCES.mixerno.
+    const sourceOf = (id) => SOURCES[cache.get(id)?.source] || SOURCES.mixerno;
 
     const updatedAt = (id) => cache.get(id)?.at ?? Date.now();
 
@@ -194,8 +269,8 @@ var RYTS = (() => {
     };
 
     return {
-        API, SOURCE, store, getSettings, setSettings, onSettings,
-        format, exact, time, canRoll, roll, fetchCount, updatedAt, observe, getHistory, growthPerDay, nextMilestone, pageUrl,
+        API, SOURCE, SOURCES, store, getSettings, setSettings, onSettings,
+        format, exact, time, canRoll, roll, fetchCount, sourceOf, updatedAt, observe, getHistory, growthPerDay, nextMilestone, pageUrl,
     };
 })();
 
@@ -250,7 +325,7 @@ var RYTS = (() => {
             background: var(--yt-spec-badge-chip-background, rgba(0, 0, 0, .05)); }
         .ryts-panel b { display: block; font-size: 16px; line-height: 22px; font-weight: 500; color: var(--yt-spec-text-primary, #0f0f0f); }
         .ryts-panel strong { display: block; font-size: 20px; line-height: 28px; font-weight: 700; color: var(--yt-spec-text-primary, #0f0f0f); }
-        .ryts-panel .ryts-chip { margin-left: auto; }
+        .ryts-panel .ryts-chip:first-of-type { margin-left: auto; }
         .ryts-tip { position: fixed; z-index: 9999; max-width: 280px; padding: 8px 10px; border-radius: 4px; pointer-events: none;
             font: 400 12px/16px Roboto, Arial, sans-serif; color: #fff; background: rgba(97, 97, 97, .95); }
         @media (prefers-reduced-motion: reduce) { .ryts-reel { transition: none; } .ryts-live::before { animation: none; } }
@@ -268,7 +343,7 @@ var RYTS = (() => {
 
     const label = (s) => R.format(s.count, settings.format) + " subscribers";
     const tooltip = (s) =>
-        `Estimated by ${R.SOURCE}, updated ${R.time(s.at)}.` +
+        `${R.sourceOf(s.id).tooltip}, updated ${R.time(s.at)}.` +
         (s.rounded ? ` YouTube shows ${s.rounded.trim()}.` : "") +
         (s.live ? " Live: refreshes every 10 seconds." : "");
 
@@ -481,7 +556,8 @@ var RYTS = (() => {
         panel.className = "ryts-panel";
         panel.setAttribute("aria-label", "Your channel");
         const cell = (big, small) => h("div", {}, h("strong", { textContent: big }), small);
-        panel.append(h("div", {}, h("b", { textContent: "Your channel" }), `Next milestone: ${R.exact(goal)}`), cell(R.exact(togo), "to go"));
+        const verified = R.sourceOf(page.id).exact;
+        panel.append(h("div", {}, h("b", { textContent: verified ? "Your channel: real Studio count" : "Your channel" }), `Next milestone: ${R.exact(goal)}`), cell(R.exact(togo), "to go"));
         if (perDay !== null) {
             panel.append(
                 cell(`${perDay >= 0 ? "+" : "−"}${R.exact(Math.round(Math.abs(perDay)))}`, "per day, recently"),
@@ -489,6 +565,14 @@ var RYTS = (() => {
             );
         } else {
             panel.append(h("div", { textContent: "Growth and a projected date appear after you've visited a few times." }));
+        }
+        if (!verified) {
+            // Not in the Unabbreviated Project yet: viewers see an estimate. Offer the real thing.
+            panel.append(h("a", {
+                className: "ryts-chip", href: "https://nextcounts.com/unabbreviate/", target: "_blank", rel: "noopener",
+                textContent: "Show your exact count",
+                title: "Viewers see an estimate. Connect YouTube Studio through NextCounts' Unabbreviated Project to show your real count.",
+            }));
         }
         const href = R.pageUrl("counter.html", { c: page.id, n: page.name || "" });
         if (href) {
@@ -510,7 +594,7 @@ var RYTS = (() => {
                 if (!target || !href || renderer.__ryts) continue;
                 renderer.__ryts = limited(async () => {
                     const id = await idForHref(href);
-                    const count = id && await R.fetchCount(id);
+                    const count = id && await R.fetchCount(id, { bulk: true });
                     if (count == null) return null;
                     R.observe(id, count, { name: renderer.querySelector("#channel-title #text, #text")?.textContent.trim(), handle: href.match(/@[^/?#]+/)?.[0] });
                     show(target, { id, count });
@@ -535,7 +619,7 @@ var RYTS = (() => {
             if (!href) continue;
             el.__ryts = limited(async () => {
                 const id = await idForHref(href);
-                const count = id && await R.fetchCount(id);
+                const count = id && await R.fetchCount(id, { bulk: true });
                 if (count == null) return;
                 show(el, { id, count });
             });

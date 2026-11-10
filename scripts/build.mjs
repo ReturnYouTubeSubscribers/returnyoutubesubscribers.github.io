@@ -188,7 +188,7 @@ const listings = {
             ["Store icon (128x128)", "icon-128.png"],
             ["Small promo tile (440x280)", "promo-small-440x280.png"],
             ["Marquee promo tile (1400x560)", "promo-marquee-1400x560.png"],
-            ["Screenshots (1280x800)", "screenshot-*.png"],
+            ["Screenshots (1280x800, Chrome takes 5: use 1 to 5)", "screenshot-*.png"],
         ]),
         "## Privacy practices tab\n",
         field("Single purpose", L.dataDisclosure.singlePurpose),
@@ -235,7 +235,7 @@ const listings = {
         `## Category\n\n${L.categories.opera}\n`,
         assetsTable([
             ["Icon (128x128)", "icon-128.png"],
-            ["Screenshots (1280x800)", "screenshot-*.png"],
+            ["Screenshots (1280x800, use 1 to 5)", "screenshot-*.png"],
         ]),
         linksBlock,
     ],

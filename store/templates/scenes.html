@@ -29,7 +29,7 @@
   .shot header { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; }
   .shot h1 { font-size: 60px; max-width: 760px; }
   .shot header p { color: var(--slate); font-size: 21px; line-height: 1.45; max-width: 360px; padding-bottom: 6px; text-wrap: balance; }
-  .shot > .yt { align-self: start; }
+  .shot > .yt, .shot > .race-card { align-self: start; }
   .shot > .ba, .shot > .center { align-self: center; }
 
   /* ---------- YouTube-like dark UI ---------- */
@@ -121,6 +121,28 @@
   .facts span { display: flex; align-items: center; gap: 12px; }
   .facts span::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--red); }
 
+
+  /* race */
+  .race-card { background: #fff; border: 2px solid var(--mist); border-radius: 22px; padding: 56px 56px 44px; box-shadow: 0 30px 60px -28px rgba(26, 28, 46, .35); }
+  .race-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; min-width: 0; }
+  .race-side .who { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+  .race-side .who .avatar { width: 68px; height: 68px; font-size: 24px; }
+  .race-side .n { font-family: "Inter Display", "Inter"; font-weight: 800; font-size: 80px; letter-spacing: -0.045em; line-height: 1; margin-top: 26px; }
+  .race-side small { display: block; color: var(--slate); font-size: 19px; margin-top: 10px; }
+  .race-gap { margin-top: 40px; padding-top: 28px; border-top: 2px solid var(--mist); font-size: 24px; color: var(--slate); }
+  .race-gap strong { color: var(--red); }
+  .race-bar { display: flex; gap: 12px; align-items: center; margin-top: 30px; color: var(--slate); font-size: 18px; }
+  .race-bar .pill { margin-left: auto; border: 2px solid var(--mist); border-radius: 999px; padding: 8px 16px; font-weight: 700; color: var(--ink); }
+  .race-bar .pill.red { margin-left: 0; background: var(--red); border-color: var(--red); color: #fff; }
+
+  /* your channel */
+  .mine .chan { padding-bottom: 14px; }
+  .verified { display: inline-flex; align-items: center; gap: 6px; margin-left: 14px; background: #1F9D6B; color: #fff; font-size: 14px; font-weight: 700; padding: 5px 11px; border-radius: 999px; }
+  .ms { margin: 0 28px 24px; background: #272727; border-radius: 16px; padding: 26px 30px; display: flex; align-items: center; gap: 44px; font-size: 18px; color: var(--yt-muted); }
+  .ms b { display: block; color: var(--yt-text); font-size: 21px; font-weight: 600; }
+  .ms strong { display: block; color: var(--yt-text); font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+  .ms .chip { margin-left: auto; background: #3F3F3F; color: var(--yt-text); border-radius: 999px; padding: 10px 18px; font-weight: 600; white-space: nowrap; }
+
   /* ---------- promo tiles / social card ---------- */
   .promo { display: flex; flex-direction: column; justify-content: center; padding: 0 var(--pad); background: var(--paper); }
   .promo .counter { font-family: "Inter Display", "Inter"; font-weight: 800; letter-spacing: -0.04em; line-height: 1;
@@ -173,8 +195,8 @@
     <div class="watch">
       <h3>Straight From MG Hitting 100,000 Views</h3>
       <div class="owner">
-        <img class="avatar" src="avatars/sfmg.png" alt="">
-        <div><b>Straight From MG</b><span class="count exact">34,010 subscribers</span><span class="was">YouTube shows <s>34K</s></span></div>
+        <img class="avatar" src="avatars/sfmg.jpg" alt="">
+        <div><b>Straight From MG</b><span class="count exact">34,012 subscribers</span><span class="was">YouTube shows <s>34K</s></span></div>
         <span class="btn-sub" style="margin-left: 24px;">Subscribe</span>
         <span class="btn-sub btn-ghost" style="margin-left: auto;">Share</span>
       </div>
@@ -189,22 +211,64 @@
     <p>Compare channels at a glance instead of guessing between rounded numbers.</p>
   </header>
   <div class="yt search">
-    <div class="searchbar muted">mrbeast</div>
+    <div class="searchbar muted">biggest youtubers</div>
     <div class="result">
       <div class="avatar" style="background: linear-gradient(135deg, #3A7BD5, #6C5CE7);" data-img="avatars/mrbeast.jpg">MB</div>
       <div class="grow"><h4>MrBeast</h4><div class="meta muted">@MrBeast <span>•</span> <span class="exact">452,318,906 subscribers</span></div><div class="muted" style="font-size:16px">Official channel</div></div>
       <span class="btn-sub">Subscribe</span>
     </div>
     <div class="result">
-      <div class="avatar" style="background: linear-gradient(135deg, #00B894, #3A7BD5);" data-img="avatars/mrbeast-gaming.jpg">MG</div>
-      <div class="grow"><h4>MrBeast Gaming</h4><div class="meta muted">@MrBeastGaming <span>•</span> <span class="exact">51,872,340 subscribers</span></div><div class="muted" style="font-size:16px">Gaming channel</div></div>
+      <div class="avatar" style="background: #555;" data-img="avatars/pewdiepie.jpg">PD</div>
+      <div class="grow"><h4>PewDiePie</h4><div class="meta muted">@PewDiePie <span>•</span> <span class="exact">110,431,882 subscribers</span></div><div class="muted" style="font-size:16px">I make videos.</div></div>
       <span class="btn-sub">Subscribe</span>
     </div>
     <div class="result">
-      <div class="avatar" style="background: linear-gradient(135deg, #F7B267, #E0262F);" data-img="avatars/beast-philanthropy.jpg">BP</div>
-      <div class="grow"><h4>Beast Philanthropy</h4><div class="meta muted">@BeastPhilanthropy <span>•</span> <span class="exact">28,406,915 subscribers</span></div><div class="muted" style="font-size:16px">Charity channel</div></div>
+      <div class="avatar" style="background: #555;" data-img="avatars/thefatrat.jpg">TF</div>
+      <div class="grow"><h4>TheFatRat</h4><div class="meta muted">@TheFatRat <span>•</span> <span class="exact">6,912,407 subscribers</span></div><div class="muted" style="font-size:16px">Music producer.</div></div>
       <span class="btn-sub">Subscribe</span>
     </div>
+  </div>
+</section>
+
+<!-- 3b. race mode -->
+<section class="scene shot" id="race">
+  <header>
+    <h1>Race any two channels, live</h1>
+    <p>A full-screen counter that refreshes every few seconds. Save it as an image to share.</p>
+  </header>
+  <div class="race-card">
+    <div class="race-sides">
+      <div class="race-side"><div class="who"><div class="avatar" style="background:#3A7BD5" data-img="avatars/mrbeast.jpg">MB</div>MrBeast</div><div class="n">452,318,906</div><small>subscribers, estimated</small></div>
+      <div class="race-side"><div class="who"><div class="avatar" style="background:#555" data-img="avatars/pewdiepie.jpg">PD</div>PewDiePie</div><div class="n">110,431,882</div><small>subscribers, estimated</small></div>
+    </div>
+    <div class="race-gap">MrBeast leads by <strong>341,887,024</strong> subscribers</div>
+    <div class="race-bar">Updated just now, refreshes every 5 seconds.<span class="pill">Save image</span><span class="pill red">Full screen</span></div>
+  </div>
+</section>
+
+<!-- 3c. your channel -->
+<section class="scene shot" id="your-channel">
+  <header>
+    <h1>Your next milestone, counted exactly</h1>
+    <p>Creators in NextCounts' Unabbreviated Project show their real Studio count to everyone.</p>
+  </header>
+  <div class="yt mine">
+    <div class="chan">
+      <img class="avatar" src="avatars/sfmg.jpg" alt="" style="width:130px;height:130px">
+      <div>
+        <h2>Straight From MG</h2>
+        <div class="meta muted">@sfmg <span>•</span> <span class="exact">34,012 subscribers</span><span class="verified">Real Studio count</span></div>
+      </div>
+    </div>
+    <div class="ms">
+      <div><b>Your channel</b>Next milestone: 35,000</div>
+      <div><strong>988</strong>to go</div>
+      <div><strong>+24</strong>per day, recently</div>
+      <div><strong>Dec 21, 2026</strong>projected date</div>
+      <span class="chip">Open live counter</span>
+    </div>
+    <div class="tabs"><span>Home</span><span>Videos</span><span>Shorts</span><span>Live</span><span>Community</span></div>
+    <div class="thumbs"><i style="--a:#1E88C8;--b:#16323A"></i><i style="--a:#7B2D5B;--b:#2A1B3D"></i><i style="--a:#F4845F;--b:#3B1F3A"></i><i style="--a:#00B894;--b:#16323A"></i></div>
   </div>
 </section>
 
@@ -238,7 +302,7 @@
     <div class="flow">
       <div class="node"><b>You open a channel</b><p>The extension reads the channel's public ID, like <code>UCX6…</code></p></div>
       <div class="arrow"></div>
-      <div class="node"><b>One lookup</b><p>Only that ID is sent to <code>mixerno.space</code> to get the current estimate.</p></div>
+      <div class="node"><b>One lookup</b><p>Only that ID is sent: to <code>nextcounts.com</code> for creators sharing their real count, otherwise to <code>mixerno.space</code>.</p></div>
       <div class="arrow"></div>
       <div class="node red"><b>Exact count</b><div class="num">452,318,906</div><p>Shown where YouTube's rounded number was.</p></div>
     </div>

@@ -33,20 +33,21 @@
     <p class="updated">Last updated November 8, 2026. Applies to the browser extension (Chrome, Edge, Opera, Firefox, Safari) and the userscript.</p>
 
     <h2>The short version</h2>
-    <p>The extension sends one thing: the public ID of the YouTube channel you're looking at, to Mixerno.space, to get its subscriber count. We don't collect, store, sell or share anything else, and there's no account.</p>
+    <p>The extension sends one thing: the public ID of the YouTube channel you're looking at, to NextCounts or Mixerno.space, to get its subscriber count. We don't collect, store, sell or share anything else, and there's no account.</p>
 
     <h2>What is sent, and where</h2>
     <ul>
-      <li><strong>To <code>backend.mixerno.space</code>:</strong> the channel ID (for example <code>UCx7…</code>) of the channel page, video or search result on screen. Your browser makes this request directly, so Mixerno.space also receives the standard information any website receives, such as your IP address. See <a href="https://mixerno.space">Mixerno.space</a> for how they handle requests.</li>
+      <li><strong>To NextCounts (<code>api.nextcounts.com</code>, <code>api-v2.nextcounts.com</code>):</strong> about once an hour the extension downloads the list of channels in <a href="https://nextcounts.com/unabbreviate/">NextCounts' Unabbreviated Project</a>, which share their real count from YouTube Studio. When you view one of those channels, its channel ID is sent to NextCounts to get that real count. See <a href="https://nextcounts.com">nextcounts.com</a> for how they handle requests.</li>
+      <li><strong>To <code>backend.mixerno.space</code>:</strong> for every other channel (or when NextCounts is unavailable), the channel ID (for example <code>UCx7…</code>) of the channel page, video or search result on screen. Your browser makes this request directly, so Mixerno.space also receives the standard information any website receives, such as your IP address. See <a href="https://mixerno.space">Mixerno.space</a> for how they handle requests.</li>
       <li><strong>To <code>youtube.com</code>:</strong> on search result pages the extension loads channel pages from YouTube to find their IDs. These are ordinary requests to YouTube, made with your existing YouTube session.</li>
     </ul>
 
     <h2>What is not collected</h2>
     <ul>
       <li>No analytics, telemetry, crash reports or advertising IDs.</li>
-      <li>Your browsing history is never sent anywhere beyond the single lookup above.</li>
+      <li>Your browsing history is never sent anywhere beyond the lookups above.</li>
       <li>No personal information, YouTube account details or cookies are read or sent by the extension.</li>
-      <li>On your device only, the extension keeps your number-format setting and the counts of channels you have viewed (up to 240 readings per channel), which power growth rates, milestone projections and the toolbar popup. This never leaves your browser; removing the extension deletes it.</li>
+      <li>On your device only, the extension keeps your number-format setting and the counts of channels you have viewed (up to 240 readings per channel), which power growth rates, milestone projections and the toolbar popup, plus the hourly list of Unabbreviated Project channels. This never leaves your browser; removing the extension deletes it.</li>
     </ul>
 
     <h2>This website</h2>

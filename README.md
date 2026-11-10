@@ -3,7 +3,8 @@
 # Return YouTube Subscribers
 
 Brings back exact, unabbreviated subscriber counts on YouTube: on channel pages, under videos
-and in search results. Counts are live estimates from [Mixerno.space](https://mixerno.space).
+and in search results. Channels in [NextCounts' Unabbreviated Project](https://nextcounts.com/unabbreviate/) show their real
+count from YouTube Studio; every other channel shows a live estimate from [Mixerno.space](https://mixerno.space).
 
 **[Website](https://ryts.mgcounts.com)** ·
 [Chrome](https://chrome.google.com/webstore/detail/return-youtube-subscriber/ojecnnfmjkfobkhghilomnfihgonkjdm) ·

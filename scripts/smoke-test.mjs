@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // End-to-end smoke test with no real network access:
-//   * youtube.com and backend.mixerno.space are intercepted and served from fixtures
+//   * youtube.com, NextCounts and backend.mixerno.space are intercepted and served from fixtures
 //   * the built Chrome package (dist/chrome) is loaded as a real unpacked extension
 //   * the generated userscript is injected into Firefox and WebKit (Safari's engine)
 // Each run checks that the rounded count is replaced with the exact one.
@@ -24,6 +24,10 @@ const watchPage = `<!doctype html><html><head><title>Fixture</title>
 
 async function route(context) {
     await context.route("https://www.youtube.com/**", (r) => r.fulfill({ contentType: "text/html", body: watchPage }));
+    // NextCounts is unavailable here, so this also covers the fallback to Mixerno.
+    for (const host of ["https://api.nextcounts.com/**", "https://api-v2.nextcounts.com/**"]) {
+        await context.route(host, (r) => r.fulfill({ status: 404, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "{}" }));
+    }
     await context.route("https://backend.mixerno.space/**", (r) => {
         const ok = r.request().url().endsWith(CHANNEL_ID);
         r.fulfill({

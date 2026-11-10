@@ -49,7 +49,7 @@
             background: var(--yt-spec-badge-chip-background, rgba(0, 0, 0, .05)); }
         .ryts-panel b { display: block; font-size: 16px; line-height: 22px; font-weight: 500; color: var(--yt-spec-text-primary, #0f0f0f); }
         .ryts-panel strong { display: block; font-size: 20px; line-height: 28px; font-weight: 700; color: var(--yt-spec-text-primary, #0f0f0f); }
-        .ryts-panel .ryts-chip { margin-left: auto; }
+        .ryts-panel .ryts-chip:first-of-type { margin-left: auto; }
         .ryts-tip { position: fixed; z-index: 9999; max-width: 280px; padding: 8px 10px; border-radius: 4px; pointer-events: none;
             font: 400 12px/16px Roboto, Arial, sans-serif; color: #fff; background: rgba(97, 97, 97, .95); }
         @media (prefers-reduced-motion: reduce) { .ryts-reel { transition: none; } .ryts-live::before { animation: none; } }
@@ -67,7 +67,7 @@
 
     const label = (s) => R.format(s.count, settings.format) + " subscribers";
     const tooltip = (s) =>
-        `Estimated by ${R.SOURCE}, updated ${R.time(s.at)}.` +
+        `${R.sourceOf(s.id).tooltip}, updated ${R.time(s.at)}.` +
         (s.rounded ? ` YouTube shows ${s.rounded.trim()}.` : "") +
         (s.live ? " Live: refreshes every 10 seconds." : "");
 
@@ -280,7 +280,8 @@
         panel.className = "ryts-panel";
         panel.setAttribute("aria-label", "Your channel");
         const cell = (big, small) => h("div", {}, h("strong", { textContent: big }), small);
-        panel.append(h("div", {}, h("b", { textContent: "Your channel" }), `Next milestone: ${R.exact(goal)}`), cell(R.exact(togo), "to go"));
+        const verified = R.sourceOf(page.id).exact;
+        panel.append(h("div", {}, h("b", { textContent: verified ? "Your channel: real Studio count" : "Your channel" }), `Next milestone: ${R.exact(goal)}`), cell(R.exact(togo), "to go"));
         if (perDay !== null) {
             panel.append(
                 cell(`${perDay >= 0 ? "+" : "−"}${R.exact(Math.round(Math.abs(perDay)))}`, "per day, recently"),
@@ -288,6 +289,14 @@
             );
         } else {
             panel.append(h("div", { textContent: "Growth and a projected date appear after you've visited a few times." }));
+        }
+        if (!verified) {
+            // Not in the Unabbreviated Project yet: viewers see an estimate. Offer the real thing.
+            panel.append(h("a", {
+                className: "ryts-chip", href: "https://nextcounts.com/unabbreviate/", target: "_blank", rel: "noopener",
+                textContent: "Show your exact count",
+                title: "Viewers see an estimate. Connect YouTube Studio through NextCounts' Unabbreviated Project to show your real count.",
+            }));
         }
         const href = R.pageUrl("counter.html", { c: page.id, n: page.name || "" });
         if (href) {
@@ -309,7 +318,7 @@
                 if (!target || !href || renderer.__ryts) continue;
                 renderer.__ryts = limited(async () => {
                     const id = await idForHref(href);
-                    const count = id && await R.fetchCount(id);
+                    const count = id && await R.fetchCount(id, { bulk: true });
                     if (count == null) return null;
                     R.observe(id, count, { name: renderer.querySelector("#channel-title #text, #text")?.textContent.trim(), handle: href.match(/@[^/?#]+/)?.[0] });
                     show(target, { id, count });
@@ -334,7 +343,7 @@
             if (!href) continue;
             el.__ryts = limited(async () => {
                 const id = await idForHref(href);
-                const count = id && await R.fetchCount(id);
+                const count = id && await R.fetchCount(id, { bulk: true });
                 if (count == null) return;
                 show(el, { id, count });
             });

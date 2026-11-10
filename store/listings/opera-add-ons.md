@@ -26,6 +26,7 @@ WHAT IT DOES
 • Channel pages: "452M subscribers" becomes "452,318,906 subscribers"
 • Watch pages: the exact count appears under the channel name on every video
 • Search results: exact counts on channel results
+• Real counts for creators in NextCounts' Unabbreviated Project, estimates for everyone else
 • Keeps working as you browse; no page reloads needed
 • Sort channel search results by exact subscriber count
 • Exact counts on featured channels and channel lists
@@ -38,13 +39,13 @@ WHAT IT DOES
 • Hover any count to see where it came from and when it was updated
 
 HOW IT WORKS
-YouTube no longer publishes exact counts. The extension reads the ID of the channel you are viewing, asks the Mixerno.space API for its estimated count, and shows that in place of the rounded number. Counts are estimates and can differ slightly from YouTube's internal figure.
+YouTube no longer publishes exact counts. The extension reads the ID of the channel you are viewing. If the channel is in NextCounts' Unabbreviated Project, you see its real count from YouTube Studio. Otherwise you see a live estimate from Mixerno.space, which can differ slightly from YouTube's internal figure. Hover a count to see which one it is.
 
 PRIVACY
 • No account, no sign-in, nothing to configure
 • No analytics, ads or tracking inside the extension
 • Growth history stays on your device
-• The only data sent anywhere is the public ID of the channel you are viewing, to backend.mixerno.space, to look up its count
+• The only data sent anywhere is the public ID of the channel you are viewing, to NextCounts or Mixerno.space, to look up its count
 • Open source on GitHub
 
 LINKS
@@ -64,15 +65,17 @@ Social
 | Field | File |
 | --- | --- |
 | Icon (128x128) | `store/assets/icon-128.png` |
-| Screenshots (1280x800) | `store/assets/screenshot-*.png` |
+| Screenshots (1280x800, use 1 to 5) | `store/assets/screenshot-*.png` |
 
 Screenshots, in order:
 
 1. `store/assets/screenshot-1-channel.png`: Exact subscriber counts on every channel page
-2. `store/assets/screenshot-2-watch.png`: The full number under every video
-3. `store/assets/screenshot-3-search.png`: Exact counts in search results
-4. `store/assets/screenshot-4-before-after.png`: 452M becomes 452,318,906
-5. `store/assets/screenshot-5-privacy.png`: Lightweight, open source, no tracking
+2. `store/assets/screenshot-2-search.png`: Exact counts in search results, sortable by subscribers
+3. `store/assets/screenshot-3-race.png`: Race any two channels, live
+4. `store/assets/screenshot-4-your-channel.png`: Your next milestone, with real Studio counts via NextCounts
+5. `store/assets/screenshot-5-before-after.png`: 452M becomes 452,318,906
+6. `store/assets/screenshot-6-watch.png`: The full number under every video
+7. `store/assets/screenshot-7-privacy.png`: Lightweight, open source, no tracking
 
 ## Links
 
