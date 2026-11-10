@@ -26,8 +26,8 @@
         const h1 = document.createElement("h1");
         h1.textContent = side.name;
         side.number = Object.assign(document.createElement("div"), { className: "big", textContent: "–" });
-        const sub = Object.assign(document.createElement("p"), { textContent: "subscribers" });
-        section.append(h1, side.number, sub);
+        side.sub = Object.assign(document.createElement("p"), { textContent: "subscribers" });
+        section.append(h1, side.number, side.sub);
         side.section = section;
         board.append(section);
     }
@@ -52,7 +52,7 @@
     async function refresh() {
         const counts = await Promise.all(sides.map((s) => R.fetchCount(s.id, { fresh: true })));
         if (counts.some((c) => c === null)) {
-            status.textContent = `Couldn't reach ${R.SOURCE}. Trying again in ${REFRESH_MS / 1000} seconds.`;
+            status.textContent = `Couldn't reach the count services. Trying again in ${REFRESH_MS / 1000} seconds.`;
             return;
         }
         sides.forEach((side, i) => {
@@ -61,6 +61,8 @@
             if (R.canRoll()) R.roll(side.number, text, side.text, animate);
             else side.number.textContent = text;
             side.count = counts[i];
+            side.source = R.sourceOf(side.id);
+            side.sub.textContent = side.source.exact ? "subscribers, real count from YouTube Studio" : "subscribers, estimated";
             side.text = text;
             R.observe(side.id, counts[i], { name: side.name });
         });
@@ -71,7 +73,8 @@
             sides.forEach((s) => s.section.classList.toggle("leader", s === lead));
             gap.replaceChildren(`${lead.name} leads by `, Object.assign(document.createElement("strong"), { textContent: R.exact(lead.count - other.count) }), " subscribers");
         }
-        status.textContent = `Estimated by ${R.SOURCE}. Updated ${R.time(Date.now())}, refreshes every ${REFRESH_MS / 1000} seconds.`;
+        const names = [...new Set(sides.map((s) => s.source.name))].join(" and ");
+        status.textContent = `Counts from ${names}. Updated ${R.time(Date.now())}, refreshes every ${REFRESH_MS / 1000} seconds.`;
     }
     await refresh();
     setInterval(refresh, REFRESH_MS);
@@ -101,7 +104,7 @@
             const s = sides[0];
             ctx.fillStyle = "#1A1C2E"; fit(s.name, 700, 52, W - 128); ctx.fillText(s.name, 64, 250);
             fit(s.text, 800, 170, W - 128); ctx.fillText(s.text, 60, 420);
-            ctx.fillStyle = "#5D6178"; ctx.font = font(500, 30); ctx.fillText("subscribers", 64, 475);
+            ctx.fillStyle = "#5D6178"; ctx.font = font(500, 30); ctx.fillText(s.source?.exact ? "subscribers, real count from YouTube Studio" : "subscribers", 64, 475);
         } else {
             sides.forEach((s, i) => {
                 const x = 64 + i * 560;
@@ -113,7 +116,7 @@
             ctx.fillStyle = "#5D6178"; ctx.font = font(500, 30); ctx.fillText(`${lead.name} leads by ${diff}`, 64, 460);
         }
         ctx.fillStyle = "#5D6178"; ctx.font = font(500, 22);
-        ctx.fillText(`Estimated live count, ${new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}. ryts.mgcounts.com`, 64, H - 52);
+        ctx.fillText(`${sides.every((s) => s.source?.exact) ? "Live count" : "Estimated live count"}, ${new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}. ryts.mgcounts.com`, 64, H - 52);
         const link = document.createElement("a");
         link.download = `${sides.map((s) => s.name).join("-vs-").replace(/[^\w-]+/g, "_")}-subscribers.png`;
         link.href = canvas.toDataURL("image/png");

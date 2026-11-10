@@ -5,6 +5,8 @@ tagged version into the GitHub release and the Firefox Add-ons version notes.
 
 ## 4.4.0
 
+- Real subscriber counts for channels in NextCounts' Unabbreviated Project, which share their count straight from YouTube Studio. Every other channel still shows Mixerno.space's estimate, and so does any channel if NextCounts is unavailable.
+- Creators not yet in the project see a "Show your exact count" link on their own channel.
 - Sort channel search results by exact subscriber count.
 - Exact counts on featured channels and other channel lists.
 - Live streams refresh the count every 10 seconds, and digits roll when a count changes.

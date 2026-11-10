@@ -26,6 +26,7 @@ WHAT IT DOES
 • Channel pages: "452M subscribers" becomes "452,318,906 subscribers"
 • Watch pages: the exact count appears under the channel name on every video
 • Search results: exact counts on channel results
+• Real counts for creators in NextCounts' Unabbreviated Project, estimates for everyone else
 • Keeps working as you browse; no page reloads needed
 • Sort channel search results by exact subscriber count
 • Exact counts on featured channels and channel lists
@@ -38,13 +39,13 @@ WHAT IT DOES
 • Hover any count to see where it came from and when it was updated
 
 HOW IT WORKS
-YouTube no longer publishes exact counts. The extension reads the ID of the channel you are viewing, asks the Mixerno.space API for its estimated count, and shows that in place of the rounded number. Counts are estimates and can differ slightly from YouTube's internal figure.
+YouTube no longer publishes exact counts. The extension reads the ID of the channel you are viewing. If the channel is in NextCounts' Unabbreviated Project, you see its real count from YouTube Studio. Otherwise you see a live estimate from Mixerno.space, which can differ slightly from YouTube's internal figure. Hover a count to see which one it is.
 
 PRIVACY
 • No account, no sign-in, nothing to configure
 • No analytics, ads or tracking inside the extension
 • Growth history stays on your device
-• The only data sent anywhere is the public ID of the channel you are viewing, to backend.mixerno.space, to look up its count
+• The only data sent anywhere is the public ID of the channel you are viewing, to NextCounts or Mixerno.space, to look up its count
 • Open source on GitHub
 
 LINKS
