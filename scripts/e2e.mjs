@@ -124,6 +124,20 @@ await context.route("https://backend.mixerno.space/**", (route) => {
         body: JSON.stringify(c ? { items: [{ statistics: { subscriberCount: count } }] } : {}),
     });
 });
+// NextCounts' Unabbreviated Project: only Straight From MG takes part, with a real count of 34,012.
+const STUDIO_COUNT = 34012;
+let nextcountsDown = false;
+const nextcountsLookups = []; // channel IDs NextCounts was asked about, one by one
+const json = (route, status, body) => route.fulfill({ status, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
+await context.route("https://api.nextcounts.com/api/youtube/studio/channels", (route) =>
+    nextcountsDown ? json(route, 503, {}) : json(route, 200, { data: [{ id: CH.sfmg.id, title: CH.sfmg.name }] }));
+await context.route("https://api-v2.nextcounts.com/api/youtube/channel/**", (route) => {
+    const id = decodeURIComponent(route.request().url().split("/").pop());
+    nextcountsLookups.push(id);
+    if (nextcountsDown) return json(route, 503, {});
+    json(route, 200, id === CH.sfmg.id ? { verifiedSubCount: true, subcount: STUDIO_COUNT, name: CH.sfmg.name } : { verifiedSubCount: false });
+});
+await context.route("https://api.nextcounts.com/api/youtube/studio/channel/**", (route) => json(route, nextcountsDown ? 503 : 404, {}));
 await context.route("https://yt3.ggpht.com/**", (route) => route.fulfill({ contentType: "image/png", body: readFileSync(join(root, "store/templates/avatars/sfmg.png")) }));
 let pageFor = () => "";
 await context.route("https://www.youtube.com/**", (route) => {
@@ -177,20 +191,56 @@ for (const dark of [false, true]) {
         pageFor = () => channelPage(CH.sfmg, { dark });
         const page = await context.newPage();
         await page.goto("https://www.youtube.com/@sfmg");
+        nextcountsLookups.length = 0;
         await until(page, () => document.querySelector(".ryts-panel"));
         const header = await text(page, "yt-content-metadata-view-model > div:nth-child(3) > span");
-        if (header !== "34,010 subscribers") throw new Error("header was " + header);
+        if (header !== "34,012 subscribers") throw new Error("expected the Studio count, header was " + header);
         await until(page, () => [...document.querySelectorAll("ytd-grid-channel-renderer #subscribers")].every((e) => e.dataset.rytsValue));
         const featured = await page.$$eval("ytd-grid-channel-renderer #subscribers", (els) => els.map((e) => e.textContent));
         if (featured[0] !== "452,318,906 subscribers") throw new Error("featured was " + featured[0]);
         const panel = await page.locator(".ryts-panel").innerText();
-        if (!/Next milestone: 35,000/.test(panel) || !/990\s*to go/.test(panel) || !/per day/.test(panel)) throw new Error("panel: " + panel.replace(/\n/g, " | "));
+        if (!/real Studio count/.test(panel) || !/Next milestone: 35,000/.test(panel) || !/988\s*to go/.test(panel) || !/per day/.test(panel)) throw new Error("panel: " + panel.replace(/\n/g, " | "));
+        if (/Show your exact count/.test(panel)) throw new Error("join link shown to a channel already in the project");
+        const tip = await page.locator("yt-content-metadata-view-model > div:nth-child(3) > span").getAttribute("data-ryts-tip");
+        if (!/YouTube Studio/.test(tip) || !/Unabbreviated Project/.test(tip)) throw new Error("tooltip: " + tip);
+        const strays = nextcountsLookups.filter((id) => id !== CH.sfmg.id);
+        if (strays.length) throw new Error("asked NextCounts about channels outside the project: " + strays.join());
         if (!(await page.locator(".ryts-open").count())) throw new Error("no counter link");
         if (await page.evaluate(() => getComputedStyle(document.querySelector(".ryts-panel b")).color) !== (dark ? "rgb(241, 241, 241)" : "rgb(15, 15, 15)")) throw new Error("panel ignores theme");
         await shot(page, `2-own-channel-${dark ? "dark" : "light"}.png`);
         await page.close();
     });
 }
+
+// 2b. A channel outside the project falls back to Mixerno and gets the join link
+await check("own channel outside the Unabbreviated Project: Mixerno estimate and join link", async () => {
+    pageFor = () => channelPage(CH.gaming);
+    const page = await context.newPage();
+    await page.goto("https://www.youtube.com/@MrBeastGaming");
+    await until(page, () => document.querySelector(".ryts-panel"));
+    const header = await text(page, "yt-content-metadata-view-model > div:nth-child(3) > span");
+    if (header !== "51,872,340 subscribers") throw new Error("header was " + header);
+    const tip = await page.locator("yt-content-metadata-view-model > div:nth-child(3) > span").getAttribute("data-ryts-tip");
+    if (!/Estimated by Mixerno\.space/.test(tip)) throw new Error("tooltip: " + tip);
+    const join = page.getByRole("link", { name: "Show your exact count" });
+    if ((await join.getAttribute("href")) !== "https://nextcounts.com/unabbreviate/") throw new Error("join link missing");
+    const top = await page.evaluate(() => document.querySelector(".ryts-panel").getBoundingClientRect().top + scrollY);
+    await shot(page, "2b-join-unabbreviated.png", { fullPage: true, clip: { x: 0, y: top - 150, width: 1280, height: 290 } });
+    await page.close();
+});
+
+// 2c. If NextCounts is down, counts still come from Mixerno
+await check("NextCounts unavailable: falls back to Mixerno", async () => {
+    nextcountsDown = true;
+    pageFor = () => channelPage(CH.sfmg);
+    const page = await context.newPage();
+    await page.goto("https://www.youtube.com/@sfmg");
+    await until(page, () => document.querySelector("yt-content-metadata-view-model > div:nth-child(3) > span[data-ryts-value]"));
+    const header = await text(page, "yt-content-metadata-view-model > div:nth-child(3) > span");
+    nextcountsDown = false;
+    if (header !== "34,010 subscribers") throw new Error("expected the Mixerno estimate, header was " + header);
+    await page.close();
+});
 
 // 3. Live stream: count refreshes and rolls
 await check("live stream: count refreshes with a digit roll", async () => {

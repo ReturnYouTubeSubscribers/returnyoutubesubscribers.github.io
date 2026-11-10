@@ -256,11 +256,11 @@
       <div class="wrap">
         <div class="section-head">
           <h2>How it works</h2>
-          <p class="lede">YouTube stopped publishing exact counts in September 2019. The extension fills the gap with a live estimate from Mixerno.space.</p>
+          <p class="lede">YouTube stopped publishing exact counts in September 2019. Channels in <a href="https://nextcounts.com/unabbreviate/">NextCounts' Unabbreviated Project</a> share their real count from YouTube Studio; for every other channel the extension shows a live estimate from Mixerno.space.</p>
         </div>
         <ol class="steps">
           <li><h3>You open a channel or video</h3><p>The extension reads the channel's public ID from the page.</p></li>
-          <li><h3>One lookup</h3><p>Only that ID is sent to <code>mixerno.space</code>, which returns its current estimated count.</p></li>
+          <li><h3>One lookup</h3><p>Only that ID is sent: to <code>nextcounts.com</code> if the channel shares its real count, otherwise to <code>mixerno.space</code> for an estimate.</p></li>
           <li><h3>The exact number appears</h3><p>It replaces YouTube's rounded figure in place, styled to match.</p></li>
         </ol>
         <ul class="facts">
@@ -317,7 +317,11 @@
         <h2 style="margin-bottom: 24px;">Questions</h2>
         <details>
           <summary>Are the counts exact?</summary>
-          <p>They're live estimates from Mixerno.space, which tracks channels closely enough that they usually land within a small margin of YouTube's internal number. YouTube itself no longer publishes exact counts, so no tool can show the official figure.</p>
+          <p>For channels in <a href="https://nextcounts.com/unabbreviate/">NextCounts' Unabbreviated Project</a>, yes: the creator connected YouTube Studio, so you see their real count. Every other count is a live estimate from Mixerno.space, which usually lands within a small margin of YouTube's internal number. Hover any count to see which one it is.</p>
+        </details>
+        <details>
+          <summary>I'm a creator. How do I show my exact count?</summary>
+          <p>Join <a href="https://nextcounts.com/unabbreviate/">NextCounts' Unabbreviated Project</a> and connect your YouTube Studio. Everyone using Return YouTube Subscribers will then see your real count instead of an estimate.</p>
         </details>
         <details>
           <summary>Why did YouTube start rounding?</summary>
@@ -325,7 +329,7 @@
         </details>
         <details>
           <summary>What data does the extension send?</summary>
-          <p>Only the public ID of the channel you're viewing, sent to backend.mixerno.space to look up its count. It has no analytics, doesn't store your history, and has no account. Details are in the <a href="./privacy.html">privacy policy</a>.</p>
+          <p>Only the public ID of the channel you're viewing, sent to NextCounts or Mixerno.space to look up its count. It has no analytics, sends nothing about you, and has no account. Details are in the <a href="./privacy.html">privacy policy</a>.</p>
         </details>
         <details>
           <summary>A count isn't showing. What should I do?</summary>
@@ -360,7 +364,7 @@
 
   <footer>
     <div class="wrap">
-      <p>Counts from <a href="https://mixerno.space">Mixerno.space</a>. Not affiliated with YouTube or Google.</p>
+      <p>Counts from <a href="https://nextcounts.com">NextCounts</a> and <a href="https://mixerno.space">Mixerno.space</a>. Not affiliated with YouTube or Google.</p>
       <nav aria-label="Footer">
         <a href="https://discord.gg/RRwzccVWfD">Discord</a>
         <a href="https://github.com/returnyoutubesubscribers/returnyoutubesubscribers.github.io">GitHub</a>
