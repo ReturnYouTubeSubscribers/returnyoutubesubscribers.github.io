@@ -52,7 +52,7 @@ jobs:
         run: npm run lint
 
       - name: Generated files are committed
-        run: git diff --exit-code -- userscript.js return-youtube-subscribers.user.js store/listings
+        run: git diff --exit-code -- userscript.js return-youtube-subscribers.user.js assets/odometer.js store/listings
 
       - name: Smoke test
         run: npx playwright install --with-deps chromium firefox webkit && npm run test:smoke && npm run test:e2e

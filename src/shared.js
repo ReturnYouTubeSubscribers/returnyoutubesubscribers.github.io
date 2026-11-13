@@ -194,53 +194,51 @@ var RYTS = (() => {
         return (Math.floor(n / step) + 1) * step;
     }
 
-    // ---------- digit roll ----------
+    // ---------- digit roll (HubSpot's Odometer, bundled as odometer.js) ----------
 
-    // Renders `text` into `el` as rolling digits. Digits are drawn by CSS from data
-    // attributes, so the element's text stays clean; a visually hidden copy is what
-    // screen readers read and what gets copied.
-    const canRoll = () => typeof CSS !== "undefined" && CSS.supports("height", "1lh");
+    // Renders `text` into `el` with the leading number as an Odometer, so a new count rolls
+    // from the old one. The rest of the text ("subscribers", "M") stays plain. A visually
+    // hidden copy is what screen readers read and what gets copied.
+    const canRoll = () => typeof Odometer === "function";
+    const ODO_CSS = `
+        .ryts-roll { white-space: pre; font-variant-numeric: tabular-nums; }
+        .ryts-roll .odometer.odometer-auto-theme { vertical-align: top; line-height: inherit; }
+        .ryts-roll .odometer .odometer-digit { vertical-align: top; }
+        .ryts-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+        @media (prefers-reduced-motion: reduce) { .ryts-roll .odometer .odometer-ribbon-inner { transition: none !important; } }`;
+    // Odometer's theme plus the rules above, added once to the document `el` belongs to.
+    function rollStyles(doc) {
+        if (doc.__rytsOdometerCss) return;
+        doc.__rytsOdometerCss = true;
+        const style = doc.createElement("style");
+        style.textContent = Odometer.themeCSS + ODO_CSS;
+        (doc.head || doc.documentElement).append(style);
+    }
+    const NUMBER = /^(\d{1,3}(?:,\d{3})*)([^]*)$/; // "452,318,906 subscribers", "452.3M subscribers"
+    const reduceMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function roll(el, text, prevText = "", animate = false) {
-        const wrap = document.createElement("span");
-        wrap.className = "ryts-roll";
-        wrap.setAttribute("aria-hidden", "true");
-        const chars = [...text];
-        const offset = chars.length - [...prevText].length; // align digits from the right
-        const moves = [];
-        let run = null; // consecutive non-digits share one box, aligned like the digits
-        chars.forEach((ch, i) => {
-            if (!/\d/.test(ch)) {
-                if (!run) wrap.append(run = Object.assign(document.createElement("span"), { className: "ryts-t" }));
-                run.textContent += ch;
-                return;
-            }
-            run = null;
-            const to = +ch;
-            const before = [...prevText][i - offset];
-            const from = animate && /\d/.test(before || "") ? +before : to;
-            const box = document.createElement("span");
-            box.className = "ryts-d";
-            const reel = document.createElement("span");
-            reel.className = "ryts-reel";
-            for (let d = 0; d < 10; d++) {
-                const face = document.createElement("span");
-                face.dataset.d = d;
-                reel.append(face);
-            }
-            reel.style.transform = `translateY(calc(-1lh * ${from}))`;
-            box.append(reel);
-            wrap.append(box);
-            if (from !== to) moves.push([reel, to]);
-        });
-        const sr = document.createElement("span");
-        sr.className = "ryts-sr";
-        sr.textContent = text;
-        el.replaceChildren(wrap, sr);
-        if (moves.length) {
-            wrap.getBoundingClientRect(); // commit start positions
-            requestAnimationFrame(() => moves.forEach(([reel, to]) => { reel.style.transform = `translateY(calc(-1lh * ${to}))`; }));
+        const m = text.match(NUMBER);
+        if (!m) return void (el.textContent = text);
+        rollStyles(el.ownerDocument);
+        const value = +m[1].replaceAll(",", "");
+        let wrap = el.querySelector(":scope > .ryts-roll");
+        const od = wrap?.__odometer;
+        if (od && animate && !reduceMotion()) {
+            od.update(value);
+            wrap.lastChild.data = m[2];
+        } else {
+            wrap = document.createElement("span");
+            wrap.className = "ryts-roll";
+            wrap.setAttribute("aria-hidden", "true");
+            const odo = document.createElement("span");
+            wrap.append(odo, m[2]);
+            wrap.__odometer = new Odometer({ el: odo, value, format: "(,ddd)" });
+            const sr = document.createElement("span");
+            sr.className = "ryts-sr";
+            el.replaceChildren(wrap, sr);
         }
+        el.querySelector(":scope > .ryts-sr").textContent = text;
     }
 
     // ---------- extension pages ----------

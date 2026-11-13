@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-// Renders every image (extension icons, store icons, screenshots, promo tiles,
-// social card, website images) from branding/*.svg and store/templates/scenes.html.
+// Renders every image (extension icons, store icons, promo tiles, social card, website
+// images) from branding/*.svg and store/templates/scenes.html. Screenshots are not drawn:
+// scripts/capture-screenshots.mjs captures them from real YouTube.
 // Needs Playwright with Chromium and the Inter font installed. Outputs are
 // committed, so CI never needs to run this.
 //
 //   npm run assets
 
 import { createRequire } from "node:module";
-import { mkdirSync, rmSync, readdirSync, existsSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -33,25 +34,12 @@ const jobs = [
     // macOS app icon: artwork inset to Apple's 824/1024 grid with a soft shadow.
     ...[16, 32, 64, 128, 256, 512, 1024].map((s) => ["mac-icon", s, s, [`store/assets/safari-appicon/icon_${s}.png`], { pad: Math.round(s * 100 / 1024) }]),
     ["mac-icon", 1024, 1024, ["store/assets/app-icon-1024.png"], { pad: 100 }],
-    // Screenshots: 1280x800 is accepted by Chrome, Edge, Opera, AMO and the Mac App Store.
-    ["channel", 1280, 800, ["store/assets/screenshot-1-channel.png"]],
-    ["search", 1280, 800, ["store/assets/screenshot-2-search.png"]],
-    ["race", 1280, 800, ["store/assets/screenshot-3-race.png"]],
-    ["your-channel", 1280, 800, ["store/assets/screenshot-4-your-channel.png"]],
-    ["before-after", 1280, 800, ["store/assets/screenshot-5-before-after.png"]],
-    ["watch", 1280, 800, ["store/assets/screenshot-6-watch.png"]],
-    ["privacy", 1280, 800, ["store/assets/screenshot-7-privacy.png"]],
     // Promo tiles and social card.
     ["promo-small", 440, 280, ["store/assets/promo-small-440x280.png"]],
     ["promo-wide", 1400, 560, ["store/assets/promo-marquee-1400x560.png"], { hs: 64, cs: 96 }],
     ["promo-wide", 1200, 630, ["assets/og-image.png"], { pad: 72, hs: 56, cs: 76 }],
 ];
 
-// Start from a clean screenshot set so renamed or removed shots never linger.
-for (const dir of ["store/assets", "assets/screens"]) {
-    if (!existsSync(join(root, dir))) continue;
-    for (const f of readdirSync(join(root, dir))) if (f.startsWith("screenshot-")) rmSync(join(root, dir, f));
-}
 const browser = await chromium.launch();
 for (const [scene, w, h, outs, params = {}] of jobs) {
     const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
@@ -70,14 +58,3 @@ for (const [scene, w, h, outs, params = {}] of jobs) {
     await page.close();
 }
 await browser.close();
-
-// Website copies of the screenshots as WebP.
-execFileSync("python3", ["-c", `
-import glob, os
-from PIL import Image
-os.makedirs("assets/screens", exist_ok=True)
-for f in sorted(glob.glob("store/assets/screenshot-*.png")):
-    out = "assets/screens/" + os.path.basename(f)[:-4] + ".webp"
-    Image.open(f).save(out, quality=86, method=6)
-    print(out)
-`], { cwd: root, stdio: "inherit" });

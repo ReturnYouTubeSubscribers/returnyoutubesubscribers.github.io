@@ -123,15 +123,13 @@
     .demo .name { font-size: 1.375rem; font-weight: 700; letter-spacing: -0.01em; }
     .demo .handle { color: var(--yt-muted); font-size: .9375rem; }
     .counter { margin-top: 32px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-size: clamp(3rem, 7.4vw, 5.25rem); display: flex; white-space: nowrap; }
-    .counter .digit { display: inline-block; height: 1em; overflow: hidden; }
-    .counter .reel { display: flex; flex-direction: column; transition: transform 1.1s cubic-bezier(.2, .8, .2, 1); }
-    .counter .reel span { height: 1em; }
+    .counter .odometer.odometer-auto-theme, .counter .odometer .odometer-digit { vertical-align: top; }
     .counter-label { margin-top: 14px; color: var(--yt-muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .counter-label .was { background: var(--red); color: #fff; font-size: .8125rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
     .counter-label .was s { opacity: .8; }
     .demo .bar { height: 4px; border-radius: 2px; margin-top: 26px; background: var(--red); transform-origin: left; transform: scaleX(0); transition: transform 1.1s cubic-bezier(.2, .8, .2, 1); }
     .demo.done .bar { transform: scaleX(1); }
-    @media (prefers-reduced-motion: reduce) { .counter .reel, .demo .bar { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .counter .odometer .odometer-ribbon-inner, .demo .bar { transition: none !important; } }
 
     section { padding-block: clamp(56px, 8vw, 104px); }
     .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 64px; align-items: end; margin-bottom: 44px; }
@@ -222,13 +220,13 @@
         <p class="fine">Free and open source. No account, no tracking.</p>
       </div>
 
-      <figure class="demo" id="demo" style="margin: 0" aria-label="Example: MrBeast showing 452,318,906 subscribers instead of 452M">
+      <figure class="demo" id="demo" style="margin: 0" aria-label="MrBeast showing 526,594,749 subscribers instead of 526M">
         <div class="row">
           <div class="avatar" aria-hidden="true">MB<img src="./assets/avatars/mrbeast.jpg" alt="" onerror="this.remove()"></div>
           <div><div class="name">MrBeast</div><div class="handle">@MrBeast</div></div>
         </div>
-        <div class="counter" id="counter" aria-hidden="true">452M</div>
-        <div class="counter-label"><span>subscribers</span><span class="was">YouTube shows <s>452M</s></span></div>
+        <div class="counter" id="counter" aria-hidden="true">526M</div>
+        <div class="counter-label"><span>subscribers</span><span class="was">YouTube shows <s>526M</s></span></div>
         <div class="bar" aria-hidden="true"></div>
       </figure>
     </div>
@@ -240,17 +238,17 @@
           <p class="lede">It keeps working as you click around YouTube, with no reloads and nothing to set up.</p>
         </div>
         <div class="tabs" role="tablist" aria-label="Screenshots">
-          <button role="tab" aria-selected="true" aria-controls="viewer" data-shot="screenshot-1-channel" data-alt="MrBeast's channel page showing 452,318,906 subscribers where YouTube shows 452M">Channel pages</button>
-          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-6-watch" data-alt="A Straight From MG video showing 34,012 subscribers under the channel name">Watch pages</button>
-          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-2-search" data-alt="Search results with exact counts for MrBeast, PewDiePie and TheFatRat">Search results</button>
-          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-3-race" data-alt="A live race between MrBeast and PewDiePie showing the gap between them">Live race</button>
-          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-4-your-channel" data-alt="Straight From MG's channel with its real Studio count and next milestone">Your channel</button>
-          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-5-before-after" data-alt="Before: 452M. After: 452,318,906">Before and after</button>
+          <button role="tab" aria-selected="true" aria-controls="viewer" data-shot="screenshot-1-channel" data-alt="MrBeast's channel page showing 526,594,749 subscribers where YouTube shows 526M">Channel pages</button>
+          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-6-watch" data-alt="A MrBeast video with 526,594,811 subscribers under the channel name">Watch pages</button>
+          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-2-search" data-alt="Search results for MrBeast with exact counts, sorted by subscribers">Search results</button>
+          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-3-race" data-alt="A live race between MrBeast and PewDiePie: MrBeast leads by 416,720,342 subscribers">Live race</button>
+          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-4-live" data-alt="Lofi Girl's live stream with a live-updating count of 15,872,783 subscribers">Live streams</button>
+          <button role="tab" aria-selected="false" aria-controls="viewer" tabindex="-1" data-shot="screenshot-5-before-after" data-alt="Before: 526M. After: 526,594,749">Before and after</button>
         </div>
         <div class="viewer" id="viewer" role="tabpanel">
-          <img id="shot" src="./assets/screens/screenshot-1-channel.webp" width="1280" height="800" alt="MrBeast's channel page showing 452,318,906 subscribers where YouTube shows 452M">
+          <img id="shot" src="./assets/screens/screenshot-1-channel.webp" width="1280" height="800" alt="MrBeast's channel page showing 526,594,749 subscribers where YouTube shows 526M">
         </div>
-        <p class="note">Exact counts in these screenshots are illustrative; the extension shows the live estimate.</p>
+        <p class="note">Real screenshots of YouTube with the extension, captured on 13 November 2026. The counts have grown since.</p>
       </div>
     </section>
 
@@ -327,7 +325,7 @@
         </details>
         <details>
           <summary>Why did YouTube start rounding?</summary>
-          <p>In September 2019 YouTube began abbreviating every public subscriber count, on the site and in its API, to three significant figures. A channel showing 452M could have anywhere from 452,000,000 to 452,999,999 subscribers.</p>
+          <p>In September 2019 YouTube began abbreviating every public subscriber count, on the site and in its API, to three significant figures. A channel showing 526M could have anywhere from 526,000,000 to 526,999,999 subscribers.</p>
         </details>
         <details>
           <summary>What data does the extension send?</summary>
@@ -376,6 +374,7 @@
     </div>
   </footer>
 
+  <script src="./assets/odometer.js"></script>
   <script>
     // Point the main button at the visitor's browser.
     (() => {
@@ -393,37 +392,19 @@
       }
     })();
 
-    // Hero: show YouTube's rounded count, then roll each digit to the exact one.
+    // Hero: show YouTube's rounded count, then roll it to the exact one with Odometer.
+    // The count is the one in the channel screenshot below (captured from real YouTube).
     (() => {
-      const exact = "452,318,906", el = document.getElementById("counter"), demo = document.getElementById("demo");
-      const build = () => {
-        el.textContent = "";
-        return [...exact].map((ch) => {
-          const digit = document.createElement("span"), reel = document.createElement("span");
-          digit.className = "digit"; reel.className = "reel";
-          // Digits spin through nine values and stop on the right one.
-          const faces = /\d/.test(ch) ? Array.from({ length: 10 }, (_, i) => (Number(ch) + 1 + i) % 10) : [ch];
-          reel.innerHTML = faces.map((f) => `<span>${f}</span>`).join("");
-          digit.append(reel); el.append(digit);
-          return reel;
-        });
-      };
-      const settle = (reels) => {
-        reels.forEach((reel, i) => {
-          if (reel.children.length < 2) return;
-          reel.style.transitionDelay = `${i * 60}ms`;
-          reel.style.transform = "translateY(-9em)";
-        });
-        demo.classList.add("done");
-      };
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        el.textContent = exact; demo.classList.add("done"); return;
-      }
+      const exact = 526_594_749, rounded = 526_000_000;
+      const el = document.getElementById("counter"), demo = document.getElementById("demo");
+      if (typeof Odometer !== "function") { el.textContent = exact.toLocaleString("en-US"); demo.classList.add("done"); return; }
+      document.head.append(Object.assign(document.createElement("style"), { textContent: Odometer.themeCSS }));
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
       setTimeout(() => {
-        const reels = build();
-        el.getBoundingClientRect(); // commit the start position before animating
-        requestAnimationFrame(() => settle(reels));
-      }, 900);
+        const od = new Odometer({ el, value: reduce ? exact : rounded, format: "(,ddd)" });
+        if (!reduce) requestAnimationFrame(() => od.update(exact));
+        demo.classList.add("done");
+      }, reduce ? 0 : 900);
     })();
 
     // Screenshot tabs (arrow keys move between tabs).

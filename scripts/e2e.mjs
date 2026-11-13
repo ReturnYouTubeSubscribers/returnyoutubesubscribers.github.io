@@ -86,10 +86,14 @@ function channelPage(c, { dark = false } = {}) {
     }, { dark, data: `var ytInitialData={"externalId":"${c.id}"};` });
 }
 
-function watchPage(c, { live = false, dark = true } = {}) {
+function watchPage(c, { live = false, dark = true, staleHeader = null } = {}) {
+    // After in-app navigation YouTube keeps the previous channel page in the DOM, hidden.
+    const stale = staleHeader ? `<div hidden><div id="page-header"><yt-page-header-renderer><yt-page-header-view-model><div><div class="ytPageHeaderViewModelHeadline"><div>
+      <h1>${staleHeader.name}</h1><yt-content-metadata-view-model><div>${staleHeader.handle}</div><div>1 video</div><div><span>${staleHeader.rounded} subscribers</span></div></yt-content-metadata-view-model>
+      </div></div></div></yt-page-header-view-model></yt-page-header-renderer></div></div>` : "";
     const chat = live ? `<div style="width:380px;border:1px solid var(--yt-spec-10-percent-layer);border-radius:12px;padding:12px 16px;display:grid;gap:12px;align-content:start">
       <b>Live chat</b>${["LET'S GOOO", "GG", "who's here from shorts", "W stream", "first time catching it live!"].map((m, i) => `<div><span class="muted">viewer${i + 7}</span>&nbsp; ${m}</div>`).join("")}</div>` : "";
-    return shell({ html: `<div style="display:flex;gap:24px;padding-top:8px"><div style="flex:1">
+    return shell({ html: `${stale}<div style="display:flex;gap:24px;padding-top:8px"><div style="flex:1">
       <div id="movie_player" class="html5-video-player${live ? " ytp-live" : ""}" style="aspect-ratio:16/9;border-radius:12px;position:relative;background:linear-gradient(160deg,#F7B267,#F4845F 35%,#7B2D5B 75%,#2A1B3D)">
         ${live ? '<span style="position:absolute;left:16px;bottom:14px;background:#ff0033;color:#fff;font-weight:700;font-size:12px;padding:2px 8px;border-radius:4px">LIVE</span>' : ""}</div>
       <h1 style="font-size:20px;line-height:28px;margin:12px 0">${live ? "$1,000,000 Live Giveaway Countdown" : "I Spent 100 Days In The Wilderness"}</h1>
@@ -263,6 +267,18 @@ await check("live stream: count refreshes with a digit roll", async () => {
     const tip = await page.locator(".ryts-tip").textContent();
     if (!/Estimated by Mixerno\.space/.test(tip) || !/YouTube shows 452M/.test(tip) || !/Live/.test(tip)) throw new Error("tooltip: " + tip);
     liveMode = false;
+    await page.close();
+});
+
+// 3b. Watch page reached from a channel page: the hidden channel header must not be used
+await check("watch page after visiting a channel: owner count, not the hidden header", async () => {
+    pageFor = () => watchPage(CH.thefatrat, { dark: false, staleHeader: CH.pewdiepie });
+    const page = await context.newPage();
+    await page.goto("https://www.youtube.com/watch?v=afterchannel");
+    await until(page, () => document.querySelector("#owner-sub-count[data-ryts-value]"));
+    const owner = await text(page, "#owner-sub-count");
+    if (owner !== "6,912,407 subscribers") throw new Error("owner count was " + owner);
+    if (await page.locator("#page-header [data-ryts-value]").count()) throw new Error("painted the hidden channel header");
     await page.close();
 });
 

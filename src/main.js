@@ -22,13 +22,6 @@
 
     const style = document.createElement("style");
     style.textContent = `
-        .ryts-roll { white-space: pre; font-variant-numeric: tabular-nums; }
-        .ryts-d, .ryts-t { display: inline-block; vertical-align: top; height: 1lh; }
-        .ryts-d { overflow: hidden; }
-        .ryts-reel { display: block; transition: transform .8s cubic-bezier(.2, .8, .2, 1); }
-        .ryts-reel > span { display: block; height: 1lh; }
-        .ryts-reel > span::before { content: attr(data-d); }
-        .ryts-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
         .ryts-live::before { content: ""; display: inline-block; width: .5em; height: .5em; margin-right: .4em; border-radius: 50%;
             background: #ff0033; vertical-align: .1em; animation: ryts-pulse 1.6s ease-in-out infinite; }
         @keyframes ryts-pulse { 50% { opacity: .35; } }
@@ -52,7 +45,7 @@
         .ryts-panel .ryts-chip:first-of-type { margin-left: auto; }
         .ryts-tip { position: fixed; z-index: 9999; max-width: 280px; padding: 8px 10px; border-radius: 4px; pointer-events: none;
             font: 400 12px/16px Roboto, Arial, sans-serif; color: #fff; background: rgba(97, 97, 97, .95); }
-        @media (prefers-reduced-motion: reduce) { .ryts-reel { transition: none; } .ryts-live::before { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .ryts-live::before { animation: none; } }
     `;
     // Added in start(): at document-start (userscripts) <html> may not exist yet.
 
@@ -197,7 +190,13 @@
         page = null;
         if (!/\/(channel\/|c\/|user\/|watch\?|@)/.test(url)) return;
 
-        const target = await waitFor(() => document.querySelector(SEL.header) || document.querySelector(SEL.owner));
+        // YouTube keeps the previous page in the DOM, hidden, after in-app navigation, so only
+        // count elements that are on screen, and only the kind this URL shows: a channel
+        // header from a channel page visited earlier must not stand in for a video's owner count.
+        const shown = (sel) => [...document.querySelectorAll(sel)].find((el) => el.getClientRects().length) || null;
+        const kind = /\/watch\?/.test(url) ? "watch" : /\/live(?:[/?#]|$)/.test(url) ? "live" : "channel";
+        const target = await waitFor(() => kind === "channel" ? shown(SEL.header)
+            : kind === "watch" ? shown(SEL.owner) : shown(SEL.owner) || shown(SEL.header));
         if (!target || url !== location.href) return;
         const isChannel = target.matches(SEL.header);
         const id = await idForUrl(url);
