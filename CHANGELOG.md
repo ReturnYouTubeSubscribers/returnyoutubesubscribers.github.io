@@ -3,6 +3,13 @@
 Release notes for each version. The release workflow copies the section for the
 tagged version into the GitHub release and the Firefox Add-ons version notes.
 
+## 4.4.1
+
+- Fixed: opening a video from a channel page, or switching quickly between videos and channels, could leave YouTube's rounded count under the video. YouTube keeps the previous page hidden in the background, and the extension now only updates the page you're looking at.
+- Counts now roll with HubSpot's Odometer, in the extension, the userscript and on the website.
+- The userscript no longer also runs inside YouTube's live chat and ad frames.
+- Store and website screenshots are now real captures of YouTube with the extension, not mock-ups.
+
 ## 4.4.0
 
 - Real subscriber counts for channels in NextCounts' Unabbreviated Project, which share their count straight from YouTube Studio. Every other channel still shows Mixerno.space's estimate, and so does any channel if NextCounts is unavailable.

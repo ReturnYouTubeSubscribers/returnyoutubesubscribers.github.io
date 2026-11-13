@@ -1,7 +1,7 @@
 <!-- Generated from store/listing.json by scripts/build.mjs. Edit that file, not this one. -->
 # Firefox Add-ons (AMO) listing
 
-Version 4.4.0. Paste each field into the dashboard as-is.
+Version 4.4.1. Paste each field into the dashboard as-is.
 
 Name, summary, description, homepage, support URL and category are pushed automatically by the release workflow (`store/listings/amo-metadata.json`). Upload images by hand.
 
@@ -23,7 +23,7 @@ See exact subscriber counts on YouTube again: on channel pages, under videos, an
 Since September 2019 YouTube has rounded every subscriber count: "1.2M subscribers" could mean anything from 1,200,000 to 1,299,999. Return YouTube Subscribers puts the full number back.
 
 WHAT IT DOES
-• Channel pages: "452M subscribers" becomes "452,318,906 subscribers"
+• Channel pages: "526M subscribers" becomes "526,594,749 subscribers"
 • Watch pages: the exact count appears under the channel name on every video
 • Search results: exact counts on channel results
 • Real counts for creators in NextCounts' Unabbreviated Project, estimates for everyone else
@@ -35,7 +35,7 @@ WHAT IT DOES
 • Save a shareable image of any count or race
 • On your own channel: next milestone, subscribers to go and a projected date
 • Toolbar popup ranking the channels you've viewed by how fast they're growing
-• Choose exact (452,318,906) or compact (452.3M) numbers
+• Choose exact (526,594,749) or compact (526.5M) numbers
 • Hover any count to see where it came from and when it was updated
 
 HOW IT WORKS
@@ -72,10 +72,10 @@ Screenshots, in order:
 1. `store/assets/screenshot-1-channel.png`: Exact subscriber counts on every channel page
 2. `store/assets/screenshot-2-search.png`: Exact counts in search results, sortable by subscribers
 3. `store/assets/screenshot-3-race.png`: Race any two channels, live
-4. `store/assets/screenshot-4-your-channel.png`: Your next milestone, with real Studio counts via NextCounts
-5. `store/assets/screenshot-5-before-after.png`: 452M becomes 452,318,906
+4. `store/assets/screenshot-4-live.png`: On live streams the count refreshes every 10 seconds
+5. `store/assets/screenshot-5-before-after.png`: 526M becomes 526,594,749
 6. `store/assets/screenshot-6-watch.png`: The full number under every video
-7. `store/assets/screenshot-7-privacy.png`: Lightweight, open source, no tracking
+7. `store/assets/screenshot-7-popup.png`: See which channels you visit are growing fastest
 
 ## Notes to reviewer
 

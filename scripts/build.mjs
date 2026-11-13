@@ -8,7 +8,10 @@
 //   userscript.js + return-youtube-subscribers.user.js (repo root, served by GitHub Pages)
 //   store/listings/* -> per-store copy generated from store/listing.json
 //
-// No dependencies; zips are written with fixed timestamps so the same source
+// Odometer (HubSpot, MIT) is bundled from node_modules/odometer into every package, the
+// userscript and the website (assets/odometer.js); extensions may not load remote code.
+//
+// No other dependencies; zips are written with fixed timestamps so the same source
 // always produces byte-identical packages (reviewers can verify them).
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, copyFileSync } from "node:fs";
@@ -99,6 +102,51 @@ function zip(files) {
     return Buffer.concat([...locals, ...centrals, end]);
 }
 
+// ---------- Odometer (rolling digits) ----------
+
+// The library unchanged except for two things:
+//  * it always becomes a global (YouTube's page has an AMD loader that would otherwise take it), and
+//  * it never assigns innerHTML: youtube.com enforces Trusted Types (the userscript runs in the page)
+//    and store linters flag it. Its digit writes become textContent, and its four fixed templates
+//    (nested <span class="..."> only) are built with DOM calls.
+const odoPkg = readJSON("node_modules/odometer/package.json");
+let odoSource = readFileSync(r("node_modules/odometer/odometer.js"), "utf8");
+const odoTemplateWrite = "el.innerHTML = html;";
+const odoTextWrites = (odoSource.match(/\.innerHTML = [^;]+;/g) ?? []).length - 1;
+if (!odoSource.includes(odoTemplateWrite) || odoTextWrites !== 8) {
+    errors.push(`odometer ${odoPkg.version}: its innerHTML writes changed (expected 1 template write and 8 text writes); review scripts/build.mjs`);
+}
+odoSource = odoSource
+    .replace(odoTemplateWrite, "el.append(rytsSpans(html));")
+    .replace(/\.innerHTML = ([^;]+);/g, ".textContent = $1;");
+const odoTheme = readFileSync(r("node_modules/odometer/themes/odometer-theme-minimal.css"), "utf8")
+    .replace(/^\s*\*[a-z-]+:[^;]*;\n/gm, ""); // old-IE hacks
+const odometerJs = `// Odometer ${odoPkg.version} by HubSpot, MIT licence: https://github.hubspot.com/odometer/
+// Bundled by scripts/build.mjs from node_modules/odometer. Do not edit by hand.
+(function () {
+    var define, exports, module; // always a global
+    // Builds Odometer's templates, which are nested <span class="...">text</span> only.
+    function rytsSpans(html) {
+        var root = document.createDocumentFragment(), cur = root;
+        String(html).match(/<\\/span>|<span(?: class="[^"]*")?>|[^<]+/g).forEach(function (tok) {
+            if (tok === "</span>") cur = cur.parentNode || root;
+            else if (tok.charAt(0) === "<") {
+                var span = document.createElement("span"), cls = tok.match(/class="([^"]*)"/);
+                if (cls) span.className = cls[1];
+                cur.appendChild(span);
+                cur = span;
+            } else cur.appendChild(document.createTextNode(tok));
+        });
+        return root;
+    }
+${odoSource}
+    window.Odometer.options.auto = false; // only elements we create
+    window.Odometer.themeCSS = ${JSON.stringify(odoTheme)};
+}).call(globalThis);
+`;
+mkdirSync(r("assets"), { recursive: true });
+writeFileSync(r("assets/odometer.js"), odometerJs); // the website (GitHub Pages serves the repo root)
+
 // ---------- extension packages ----------
 
 const icons = readdirSync(r("src/icons")).filter((f) => /^icon-\d+\.png$/.test(f)).sort();
@@ -113,13 +161,14 @@ for (const [target, transform] of Object.entries(targets)) {
         manifest.action?.default_popup,
         ...(manifest.web_accessible_resources || []).flatMap((w) => w.resources),
     ].filter(Boolean);
-    for (const file of referenced) if (!sourceFiles.includes(file)) errors.push(`${target}: manifest references missing src/${file}`);
+    for (const file of referenced) if (!sourceFiles.includes(file) && file !== "odometer.js") errors.push(`${target}: manifest references missing src/${file}`);
     for (const file of Object.values(manifest.icons)) {
         if (!icons.includes(file.replace("icons/", ""))) errors.push(`${target}: missing ${file} (run npm run assets)`);
     }
     const files = [
         { name: "manifest.json", data: Buffer.from(JSON.stringify(manifest, null, 2) + "\n") },
         ...sourceFiles.map((f) => ({ name: f, data: readFileSync(r("src", f)) })),
+        { name: "odometer.js", data: Buffer.from(odometerJs) },
         ...icons.map((f) => ({ name: `icons/${f}`, data: readFileSync(r("src/icons", f)) })),
     ];
     const dir = r("dist", target);
@@ -144,10 +193,12 @@ const userscript = `// ==UserScript==
 // @downloadURL  ${rawBase}/${slug}.user.js
 // @updateURL    ${rawBase}/${slug}.user.js
 // @run-at       document-start
+// @noframes
 // @grant        none
 // ==/UserScript==
-// Generated from src/shared.js and src/main.js by scripts/build.mjs. Do not edit by hand.
+// Generated from Odometer, src/shared.js and src/main.js by scripts/build.mjs. Do not edit by hand.
 
+${odometerJs}
 ${readFileSync(r("src/shared.js"), "utf8")}
 ${readFileSync(r("src/main.js"), "utf8")}`;
 // userscript.js is kept for people who installed from the old URL.

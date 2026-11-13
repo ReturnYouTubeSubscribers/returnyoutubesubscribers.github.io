@@ -20,15 +20,7 @@ button, select { font: inherit; color: inherit; }
 .btn-quiet:hover { background: transparent; border-color: var(--slate); }
 select { background: var(--surface); border: 2px solid var(--mist); border-radius: 8px; padding: 6px 8px; min-width: 0; }
 
-/* digit roll (same as the content script) */
-.ryts-roll { white-space: pre; font-variant-numeric: tabular-nums; }
-.ryts-d, .ryts-t { display: inline-block; vertical-align: top; height: 1lh; }
-.ryts-d { overflow: hidden; }
-.ryts-reel { display: block; transition: transform .8s cubic-bezier(.2, .8, .2, 1); }
-.ryts-reel > span { display: block; height: 1lh; }
-.ryts-reel > span::before { content: attr(data-d); }
-.ryts-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .ryts-reel { transition: none; } }
+/* rolling digits: Odometer, styled from shared.js */
 
 /* ---------- popup ---------- */
 .popup { width: 360px; padding: 16px; }

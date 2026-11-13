@@ -33,7 +33,7 @@ jobs:
 
       - name: Generated files are committed
         run: |
-          if ! git diff --exit-code -- userscript.js return-youtube-subscribers.user.js store/listings; then
+          if ! git diff --exit-code -- userscript.js return-youtube-subscribers.user.js assets/odometer.js store/listings; then
             echo "::error::Generated files are out of date. Run 'npm run build' and commit the result."
             exit 1
           fi

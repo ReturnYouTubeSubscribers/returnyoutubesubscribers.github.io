@@ -156,7 +156,7 @@ This needs Playwright and the Inter font. The outputs are committed, so CI never
 | --- | --- |
 | `icon-128.png` | Chrome, Firefox and Opera store icon (96px artwork in a 128px canvas, as Chrome asks) |
 | `logo-300.png` | Edge extension logo |
-| `screenshot-1…5-*.png` (1280x800) | Screenshots on every store, same set and order everywhere |
+| `screenshot-1…7-*.png` (1280x800) | Screenshots on every store, same set and order everywhere. Captured from real YouTube with `npm run screenshots`, never drawn |
 | `promo-small-440x280.png` | Chrome and Edge small promo tile |
 | `promo-marquee-1400x560.png` | Chrome marquee and Edge large promo tile |
 | `app-icon-1024.png`, `safari-appicon/` | Mac app icon (the workflow installs it into the Xcode project) |
