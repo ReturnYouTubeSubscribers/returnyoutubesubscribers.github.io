@@ -21,6 +21,18 @@ xcrun safari-web-extension-converter dist/safari \
   --bundle-identifier "$BUNDLE_ID" \
   --swift --macos-only --copy-resources --no-open --no-prompt --force
 
+# Recent converters derive the app's bundle ID from its name and ignore --bundle-identifier,
+# and set the project's minimum macOS to the build machine's. Pin both: the app keeps its
+# App Store ID (the extension's must start with it) and runs where Safari supports MV3.
+MIN_MACOS="12.0"
+find "$OUT" -path '*.xcodeproj/*' \( -name project.pbxproj -o -name project.xcproj \) | while IFS= read -r proj; do
+  perl -0pi -e '
+    s/(PRODUCT_BUNDLE_IDENTIFIER"?\s*[=:]\s*"?)(?!\Q'"$BUNDLE_ID"'\E\.Extension)[\w.-]+("?)/$1'"$BUNDLE_ID"'$2/g;
+    s/(MACOSX_DEPLOYMENT_TARGET"?\s*[=:]\s*"?)[\d.]+/${1}'"$MIN_MACOS"'/g;
+  ' "$proj"
+  echo "Bundle ID $BUNDLE_ID, minimum macOS $MIN_MACOS in $proj"
+done
+
 # Replace the converter's generated app icon with the branded macOS icon set.
 find "$OUT" -type d -name AppIcon.appiconset | while IFS= read -r set; do
   rm -f "$set"/*.png
