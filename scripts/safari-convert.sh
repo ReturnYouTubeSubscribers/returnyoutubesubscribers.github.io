@@ -37,6 +37,9 @@ done
 APP_PLIST="$OUT/$APP_NAME/$APP_NAME/Info.plist"
 plutil -remove LSApplicationCategoryType "$APP_PLIST" 2>/dev/null || true
 plutil -insert LSApplicationCategoryType -string public.app-category.social-networking "$APP_PLIST"
+# Only the system's own HTTPS: answers App Store Connect's export-compliance question for every build.
+plutil -remove ITSAppUsesNonExemptEncryption "$APP_PLIST" 2>/dev/null || true
+plutil -insert ITSAppUsesNonExemptEncryption -bool NO "$APP_PLIST"
 
 # Replace the converter's generated app icon with the branded macOS icon set.
 find "$OUT" -type d -name AppIcon.appiconset | while IFS= read -r set; do
