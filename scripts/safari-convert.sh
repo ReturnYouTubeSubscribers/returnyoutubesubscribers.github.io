@@ -33,6 +33,11 @@ find "$OUT" -path '*.xcodeproj/*' \( -name project.pbxproj -o -name project.xcpr
   echo "Bundle ID $BUNDLE_ID, minimum macOS $MIN_MACOS in $proj"
 done
 
+# The Mac App Store requires a category in the app's Info.plist (the listing's primary one).
+APP_PLIST="$OUT/$APP_NAME/$APP_NAME/Info.plist"
+plutil -remove LSApplicationCategoryType "$APP_PLIST" 2>/dev/null || true
+plutil -insert LSApplicationCategoryType -string public.app-category.social-networking "$APP_PLIST"
+
 # Replace the converter's generated app icon with the branded macOS icon set.
 find "$OUT" -type d -name AppIcon.appiconset | while IFS= read -r set; do
   rm -f "$set"/*.png
